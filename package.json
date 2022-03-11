@@ -6,8 +6,8 @@
   "author": "Joan Roig <joanroigsegura@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "start:dev": "nodemon",
     "build": "rimraf ./build && tsc",
+    "start:dev": "nodemon",
     "start": "npm run build && node build/index.js",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --ext .ts --fix"
