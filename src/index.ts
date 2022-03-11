@@ -22,7 +22,7 @@ function camelCase(str: string) {
     .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase());
 }
 
-fs.createReadStream(path.resolve(__dirname, "..", "assets", "parse.csv"))
+fs.createReadStream(path.resolve(__dirname, "..", "in", "parse.csv"))
   .pipe(
     csv.parse({
       headers: (headerArray) => headerArray.map((header) => camelCase(header!)),
@@ -286,5 +286,5 @@ function generateInvoice(data: RechnungRow) {
     theme: "plain",
   });
 
-  return doc.save("./assets/" + data.transactionId + ".pdf");
+  return doc.save("./out/" + data.transactionId + ".pdf");
 }
