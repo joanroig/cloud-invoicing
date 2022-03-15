@@ -1,290 +1,548 @@
 console.log("> Rechnungsprogramm Start");
 console.log("-------------------------");
 
-import * as csv from "fast-csv";
 import * as fs from "fs";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
-import * as path from "path";
+import moment from "moment";
+import PdfPrinter from "pdfmake";
+import { TableCell, TDocumentDefinitions } from "pdfmake/interfaces";
+import { exit } from "process";
 
-type RechnungRow = {
-  date: string;
-  name: string;
-  net: string;
-  currency: string;
-  fromEmailAddress: string;
-  transactionId: string;
-};
-
-function camelCase(str: string) {
-  return str
-    .toLowerCase()
-    .replace(/[^a-zA-Z0-9]+(.)/g, (m, chr) => chr.toUpperCase());
+enum Vat {
+  reverse,
+  kleinunternehmer,
 }
 
-fs.createReadStream(path.resolve(__dirname, "..", "in", "parse.csv"))
-  .pipe(
-    csv.parse({
-      headers: (headerArray) => headerArray.map((header) => camelCase(header!)),
-    })
-  )
-  .on("error", (error) => console.error(error))
-  .on("data", (row: RechnungRow) => {
-    // console.log(row);
-    console.log(row.date);
-    console.log(row.name);
-    console.log(row.net);
-    console.log(row.fromEmailAddress);
-    console.log(row.transactionId);
-    console.log("---------------");
-    generateInvoice(row);
-  })
-  .on("end", (rowCount: number) => {
-    console.log(`Parsed ${rowCount} rows`);
+type Supplier = {
+  name: string;
+  address: string;
+  cp: string;
+  city: string;
+  country: string;
+  tel: string;
+  mail: string;
+  short: string;
+  ustid: string;
+  bank: {
+    name: string;
+    iban: string;
+    bic: string;
+  };
+};
+type Customer = {
+  name: string;
+  address: string;
+  cp: string;
+  city: string;
+  country: string;
+  mail: string;
+  id: string;
+  vat: Vat;
+};
+type Invoice = {
+  number: string;
+  creationDate: string;
+  executionDate: string;
+};
+type Order = {
+  list: Product[];
+  date: string;
+  total: number;
+  currency: string;
+};
+type Product = {
+  description: string;
+  unit: string;
+  amount: number;
+  price: number;
+  total: number;
+};
+
+const supplier: Supplier = {
+  name: "Demo",
+  address: "add",
+  cp: "cp",
+  city: "city",
+  country: "country",
+  tel: "Tel: +49 00",
+  mail: "Mail: demo@gmail.com",
+  short: "Demo - add - cp city - country",
+  ustid: "DEXXX",
+  bank: {
+    name: "Bankname",
+    iban: "DE00 00 00 00",
+    bic: "CSCSCSC",
+  },
+};
+
+const customer: Customer = {
+  name: "Customer",
+  address: "add",
+  cp: "cp",
+  city: "city",
+  country: "country",
+  mail: "demo@customer.de",
+  id: "UID: DDXXXX",
+  vat: Vat.reverse,
+};
+
+const order: Order = {
+  list: [
+    {
+      description: "Musikberatung",
+      unit: "Stück",
+      amount: 10,
+      price: 30,
+      total: 300,
+    },
+    {
+      description: "Grundlegende Musikberatung",
+      unit: "Stück",
+      amount: 5,
+      price: 15,
+      total: 75,
+    },
+  ],
+  date: "7.12.2022",
+  total: 375,
+  currency: "€",
+};
+
+moment.locale("de");
+const today = new Date();
+const creationDate = moment(today).format("DD.MM.YYYY");
+const executionDate = moment(new Date(order.date)).format("MMM YYYY"); // REVIEW
+const invoiceNumber = moment(today).format("YYYYMM") + "XX";
+
+const invoice: Invoice = {
+  number: invoiceNumber,
+  creationDate: creationDate,
+  executionDate: executionDate,
+};
+
+generateInvoice();
+
+function generateInvoice() {
+  // Check that prices are calculated correctly
+  let acc = 0;
+  order.list.forEach((product) => {
+    const sum = product.amount * product.price;
+    acc += sum;
+    if (sum != product.total) {
+      console.error("A product price is wrong! " + sum + " != " + order.total);
+      exit(1);
+    }
   });
+  if (acc !== order.total) {
+    console.error("The total price is wrong! " + acc + " != " + order.total);
+    exit(1);
+  }
 
-function generateInvoice(data: RechnungRow) {
-  const doc = new jsPDF();
+  // Define font files
+  const fonts = {
+    Arial: {
+      normal: "fonts/Arial.ttf",
+      bold: "fonts/Arial-Bold.ttf",
+      italics: "fonts/Arial-Italic.ttf",
+    },
+  };
 
-  autoTable(doc, {
-    body: [
-      [
-        {
-          content: "Company brand",
-          styles: {
-            halign: "left",
-            fontSize: 20,
-            textColor: "#ffffff",
-          },
-        },
-        {
-          content: "Invoice",
-          styles: {
-            halign: "right",
-            fontSize: 20,
-            textColor: "#ffffff",
-          },
-        },
-      ],
+  const printer = new PdfPrinter(fonts);
+
+  // Header
+  const rows: TableCell[][] = [
+    [
+      {
+        text: "Bezeichnung",
+        style: "itemsHeader",
+      },
+      {
+        text: "Anzahl",
+        style: ["itemsHeader", "center"],
+      },
+      {
+        text: "Einheit",
+        style: ["itemsHeader", "center"],
+      },
+      {
+        text: "Einzelpreis",
+        style: ["itemsHeader", "center"],
+      },
+      {
+        text: "Gesamtpreis",
+        style: ["itemsHeader", "center"],
+      },
     ],
-    theme: "plain",
+  ];
+  // Item rows
+  order.list.forEach((product) => {
+    rows.push([
+      {
+        text: product.description,
+        style: "itemDescription",
+      },
+      {
+        text: product.amount.toString(),
+        style: "itemNumber",
+      },
+      {
+        text: product.unit,
+        style: "itemNumber",
+      },
+      {
+        text: product.price.toFixed(2).replace(".", ",") + " " + order.currency,
+        style: "itemNumber",
+      },
+      {
+        text: product.total.toFixed(2).replace(".", ",") + " " + order.currency,
+        style: "itemNumber",
+      },
+    ]);
+  });
+  // Total row
+  rows.push([
+    {
+      text: "Rechnungsbetrag",
+      style: "itemsHeader",
+      colSpan: 4,
+    },
+    "",
+    "",
+    "",
+    {
+      text: order.total.toFixed(2).replace(".", ",") + " " + order.currency,
+      style: "itemTotal",
+    },
+  ]);
+
+  const docDefinition: TDocumentDefinitions = {
+    // header: {
+    //   columns: [
+    //     { text: "HEADER LEFT", style: "documentHeaderLeft" },
+    //     { text: "HEADER CENTER", style: "documentHeaderCenter" },
+    //     { text: "HEADER RIGHT", style: "documentHeaderRight" },
+    //   ],
+    // },
+    footer: [
+      {
+        canvas: [
+          {
+            type: "line",
+            x1: 45,
+            x2: 595 - 45,
+            y1: 10,
+            y2: 10,
+            lineWidth: 1.5,
+            lineColor: "#a5a5a5",
+          },
+        ],
+      },
+      "\n",
+      {
+        columns: [
+          {
+            text: [
+              { text: "Bankverbindung:", bold: true },
+              "\nBank: ",
+              supplier.bank.name,
+              "\nIBAN: ",
+              supplier.bank.iban,
+              "\nBIC: ",
+              supplier.bank.bic,
+            ],
+            fontSize: 8.6,
+            margin: [47.5, 0, 0, 0],
+            //  style: "documentFooterLeft"
+          },
+          // { text: "FOOTER CENTER", style: "documentFooterCenter" },
+          {
+            text: [supplier.name, "\n", "USt-IdNr.: ", supplier.ustid],
+            // style: "documentFooterRight",
+            width: 180,
+            fontSize: 8.6,
+            // margin: [5, 5, 5, 5],
+            alignment: "left",
+          },
+        ],
+      },
+    ],
+    content: [
+      // Header
+      {
+        stack: [
+          {
+            text: supplier.name,
+            alignment: "right",
+            fontSize: 12,
+          },
+          {
+            text: [
+              supplier.address,
+              "\n",
+              supplier.cp,
+              "\n",
+              supplier.tel,
+              "\n",
+              supplier.mail,
+            ],
+            alignment: "right",
+          },
+        ],
+      },
+
+      // Line breaks
+      "\n",
+
+      // Sender short
+      {
+        columns: [
+          {
+            text: supplier.short,
+            decoration: "underline",
+            fontSize: 8.6,
+          },
+        ],
+      },
+
+      // Line breaks
+      "\n",
+
+      // Billing
+      {
+        text: [
+          customer.name,
+          "\n",
+          customer.address,
+          "\n",
+          customer.cp,
+          "\n",
+          customer.country,
+          "\n",
+          customer.id,
+          "\n",
+        ],
+      },
+      // Line breaks
+      "\n",
+
+      // Invoice data
+      {
+        text: [
+          "Rechnungs-Nr.: ",
+          { text: invoice.number.toString(), bold: true },
+          "\n",
+          "Rechnungsdatum: ",
+          { text: invoice.creationDate, bold: true },
+          "\n",
+          "Leistungsdatum: ",
+          { text: invoice.executionDate, bold: true },
+        ],
+        alignment: "right",
+      },
+
+      // Line breaks
+      "\n\n",
+      {
+        text: "Rechnung",
+        bold: true,
+        fontSize: 14,
+      },
+
+      // Line breaks
+      "\n",
+
+      // Items
+      {
+        table: {
+          // headers are automatically repeated if the table spans over multiple pages
+          // you can declare how many rows should be treated as headers
+          headerRows: 1,
+          widths: ["*", 75, 75, 75, 75],
+          // heights: 2,
+          body: rows,
+        }, // table
+        //  layout: 'lightHorizontalLines'
+        layout: {
+          hLineWidth: function (i, node) {
+            return 0.7;
+          },
+          vLineWidth: function (i, node) {
+            return 0.7;
+          },
+        },
+      },
+      "\n",
+      {
+        text: [
+          checkVat(customer.vat),
+          "Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 tagen.\n\n\n",
+          "Ich danke Ihnen für die gute Zusammenarbeit.\n",
+          "Mit freundlichen Grüßen,\n\n",
+          supplier.name,
+        ],
+      },
+    ],
     styles: {
-      fillColor: "#3366ff",
+      // Document Header
+      documentHeaderLeft: {
+        fontSize: 10,
+        margin: [5, 5, 5, 5],
+        alignment: "left",
+      },
+      documentHeaderCenter: {
+        fontSize: 10,
+        margin: [5, 5, 5, 5],
+        alignment: "center",
+      },
+      documentHeaderRight: {
+        fontSize: 10,
+        margin: [5, 5, 5, 5],
+        alignment: "right",
+      },
+      // Document Footer
+      documentFooterLeft: {
+        fontSize: 10,
+        margin: [5, 5, 5, 5],
+        alignment: "left",
+      },
+      documentFooterCenter: {
+        fontSize: 10,
+        margin: [5, 5, 5, 5],
+        alignment: "center",
+      },
+      documentFooterRight: {
+        fontSize: 10,
+        margin: [5, 5, 5, 5],
+        alignment: "left",
+      },
+      // Invoice Title
+      invoiceTitle: {
+        fontSize: 22,
+        bold: true,
+        alignment: "right",
+        margin: [0, 0, 0, 15],
+      },
+      // Invoice Details
+      invoiceSubTitle: {
+        fontSize: 12,
+        alignment: "right",
+      },
+      invoiceSubValue: {
+        fontSize: 12,
+        alignment: "right",
+      },
+      // Billing Headers
+      invoiceBillingTitle: {
+        fontSize: 14,
+        bold: true,
+        alignment: "left",
+        margin: [0, 20, 0, 5],
+      },
+      // Billing Details
+      invoiceBillingDetails: {
+        alignment: "left",
+      },
+      invoiceBillingAddressTitle: {
+        margin: [0, 7, 0, 3],
+        bold: true,
+      },
+      invoiceBillingAddress: {},
+      // Items Header
+      itemsHeader: {
+        margin: [0, 4.2, 0, 4.2],
+        bold: true,
+      },
+      // Item Title
+      itemTitle: {
+        bold: true,
+      },
+      itemSubTitle: {
+        italics: true,
+        fontSize: 11,
+      },
+      itemDescription: {
+        margin: [0, 4.2, 0, 4.2],
+      },
+      itemNumber: {
+        margin: [0, 4.2, 0, 4.2],
+        alignment: "center",
+      },
+      itemTotal: {
+        margin: [0, 4.2, 0, 4.2],
+        bold: true,
+        alignment: "center",
+      },
+
+      // Items Footer (Subtotal, Total, Tax, etc)
+      itemsFooterSubTitle: {
+        margin: [0, 5, 0, 5],
+        bold: true,
+        alignment: "right",
+      },
+      itemsFooterSubValue: {
+        margin: [0, 5, 0, 5],
+        bold: true,
+        alignment: "center",
+      },
+      itemsFooterTotalTitle: {
+        margin: [0, 5, 0, 5],
+        bold: true,
+        alignment: "right",
+      },
+      itemsFooterTotalValue: {
+        margin: [0, 5, 0, 5],
+        bold: true,
+        alignment: "center",
+      },
+      signaturePlaceholder: {
+        margin: [0, 70, 0, 0],
+      },
+      signatureName: {
+        bold: true,
+        alignment: "center",
+      },
+      signatureJobTitle: {
+        italics: true,
+        fontSize: 10,
+        alignment: "center",
+      },
+      notesTitle: {
+        fontSize: 10,
+        bold: true,
+        margin: [0, 50, 0, 3],
+      },
+      notesText: {
+        fontSize: 10,
+      },
+      center: {
+        alignment: "center",
+      },
     },
-  });
-
-  autoTable(doc, {
-    body: [
-      [
-        {
-          content:
-            "Reference: #" +
-            data.transactionId +
-            "\nDate: " +
-            data.date +
-            "\nInvoice number: " +
-            data.transactionId,
-          styles: {
-            halign: "right",
-          },
-        },
-      ],
-    ],
-    theme: "plain",
-  });
-
-  autoTable(doc, {
-    body: [
-      [
-        {
-          content:
-            "Billed to:" + "\n" + data.name + "\n" + data.fromEmailAddress,
-          // "\nBilling Address line 2" +
-          // "\nZip code - City" +
-          // "\nCountry",
-          styles: {
-            halign: "left",
-          },
-        },
-        // {
-        //   content:
-        //     "Shipping address:" +
-        //     "\n" +
-        //     data.name +
-        //     "\nShipping Address line 1" +
-        //     "\nShipping Address line 2" +
-        //     "\nZip code - City" +
-        //     "\nCountry",
-        //   styles: {
-        //     halign: "left",
-        //   },
-        // },
-        {
-          content:
-            "From:" +
-            "\nCompany name" +
-            "\nShipping Address line 1" +
-            "\nShipping Address line 2" +
-            "\nZip code - City" +
-            "\nCountry",
-          styles: {
-            halign: "right",
-          },
-        },
-      ],
-    ],
-    theme: "plain",
-  });
-
-  autoTable(doc, {
-    body: [
-      [
-        {
-          content: "Amount due:",
-          styles: {
-            halign: "right",
-            fontSize: 14,
-          },
-        },
-      ],
-      [
-        {
-          content: data.net + " " + data.currency,
-          styles: {
-            halign: "right",
-            fontSize: 20,
-            textColor: "#3366ff",
-          },
-        },
-      ],
-      [
-        {
-          content: "Due date: 2022-02-01",
-          styles: {
-            halign: "right",
-          },
-        },
-      ],
-    ],
-    theme: "plain",
-  });
-
-  autoTable(doc, {
-    body: [
-      [
-        {
-          content: "Products & Services",
-          styles: {
-            halign: "left",
-            fontSize: 14,
-          },
-        },
-      ],
-    ],
-    theme: "plain",
-  });
-
-  autoTable(doc, {
-    head: [["Items", "Category", "Quantity", "Price", "Tax", "Amount"]],
-    body: [
-      ["Product or service name", "Category", "2", "$450", "$50", "$1000"],
-      ["Product or service name", "Category", "2", "$450", "$50", "$1000"],
-      ["Product or service name", "Category", "2", "$450", "$50", "$1000"],
-      ["Product or service name", "Category", "2", "$450", "$50", "$1000"],
-    ],
-    theme: "striped",
-    headStyles: {
-      fillColor: "#343a40",
+    defaultStyle: {
+      font: "Arial",
+      fontSize: 10.3,
+      lineHeight: 1.15,
+      columnGap: 20,
     },
-  });
+    // [left, top, right, bottom] or [horizontal, vertical] or just a number for equal margins
+    pageMargins: [47.5, 69, 47.5, 120],
+  };
 
-  autoTable(doc, {
-    body: [
-      [
-        {
-          content: "Subtotal:",
-          styles: {
-            halign: "right",
-          },
-        },
-        {
-          content: "$3600",
-          styles: {
-            halign: "right",
-          },
-        },
-      ],
-      [
-        {
-          content: "Total tax:",
-          styles: {
-            halign: "right",
-          },
-        },
-        {
-          content: "$400",
-          styles: {
-            halign: "right",
-          },
-        },
-      ],
-      [
-        {
-          content: "Total amount:",
-          styles: {
-            halign: "right",
-          },
-        },
-        {
-          content: "$4000",
-          styles: {
-            halign: "right",
-          },
-        },
-      ],
-    ],
-    theme: "plain",
-  });
+  const options = {
+    // ...
+  };
 
-  autoTable(doc, {
-    body: [
-      [
-        {
-          content: "Terms & notes",
-          styles: {
-            halign: "left",
-            fontSize: 14,
-          },
-        },
-      ],
-      [
-        {
-          content:
-            "orem ipsum dolor sit amet consectetur adipisicing elit. Maxime mollitia" +
-            "molestiae quas vel sint commodi repudiandae consequuntur voluptatum laborum" +
-            "numquam blanditiis harum quisquam eius sed odit fugiat iusto fuga praesentium",
-          styles: {
-            halign: "left",
-          },
-        },
-      ],
-    ],
-    theme: "plain",
-  });
+  const pdfDoc = printer.createPdfKitDocument(docDefinition, options);
+  pdfDoc.pipe(fs.createWriteStream("./out/" + invoiceNumber + ".pdf"));
+  pdfDoc.end();
+}
 
-  autoTable(doc, {
-    body: [
-      [
-        {
-          content: "This is a centered footer",
-          styles: {
-            halign: "center",
-          },
-        },
-      ],
-    ],
-    theme: "plain",
-  });
-
-  return doc.save("./out/" + data.transactionId + ".pdf");
+function checkVat(vat: Vat): string {
+  switch (vat) {
+    case Vat.reverse:
+      return "Reverse Charge: Die Steuerschuldnerschaft geht auf den Leistungsempfänger über.\n\n";
+    case Vat.kleinunternehmer:
+      return "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.\n\n";
+    default:
+      break;
+  }
 }
