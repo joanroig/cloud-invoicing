@@ -13,7 +13,7 @@
     "lint-and-fix": "eslint . --ext .ts --fix"
   },
   "dependencies": {
-    "@commitlint/cli": "^16.2.1",
+    "@commitlint/cli": "^16.2.3",
     "@commitlint/config-conventional": "^16.2.1",
     "@fast-csv/format": "^4.3.5",
     "@fast-csv/parse": "^4.3.6",
@@ -22,6 +22,8 @@
     "@types/pdfmake": "^0.1.21",
     "@typescript-eslint/eslint-plugin": "^5.15.0",
     "@typescript-eslint/parser": "^5.15.0",
+    "currency.js": "^2.0.4",
+    "dotenv": "^16.0.0",
     "eslint": "^8.11.0",
     "fast-csv": "^4.3.6",
     "google-spreadsheet": "^3.2.0",
