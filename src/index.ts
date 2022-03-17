@@ -205,7 +205,8 @@ const invoiceRegistry = new Map<string, number>();
         row[OrderKeys.invoiceDate] = order.invoiceDate;
       }
       // Save the invoice ID and dates into the sheet (no await)
-      // row.save();
+      // TODO: add await
+      row.save();
       orders.set(order.invoiceId, order);
     }
   });
@@ -336,7 +337,8 @@ function generateInvoice(order: Order) {
               "\nBIC: ",
               company.bic,
             ],
-            fontSize: 8.6,
+            // fontSize: 8.6,
+            fontSize: 10.3,
             margin: [47.5, 0, 0, 0],
             //  style: "documentFooterLeft"
           },
@@ -344,8 +346,9 @@ function generateInvoice(order: Order) {
           {
             text: [company.name, "\n", "USt-IdNr.: ", company.vatId],
             // style: "documentFooterRight",
-            width: 160,
-            fontSize: 8.6,
+            width: 170,
+            // fontSize: 8.6,
+            fontSize: 10.3,
             // margin: [5, 5, 5, 5],
             alignment: "left",
           },
@@ -466,7 +469,7 @@ function generateInvoice(order: Order) {
           checkVatProcedure(customer.vatProcedure),
           "Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen.\n\n\n",
           "Ich danke Ihnen für die gute Zusammenarbeit.\n",
-          "Mit freundlichen Grüßen,\n\n",
+          "Mit freundlichen Grüßen\n\n",
           company.name,
         ],
       },
