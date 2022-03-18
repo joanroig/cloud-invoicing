@@ -101,7 +101,8 @@ const invoiceRegistry = new Map<string, number>();
   rows = await sheet.getRows();
   let previousInvoiceId = 0;
   let previousInvoiceDate: moment.Moment;
-  rows.forEach((row, rowIndex) => {
+
+  for (const [rowIndex, row] of rows.entries()) {
     const order: Order = { items: [] };
     Object.entries(OrderKeys).forEach(([key, tableKey]) => {
       if (
@@ -204,12 +205,11 @@ const invoiceRegistry = new Map<string, number>();
         console.log("\nAdding invoice date: " + order.invoiceDate);
         row[OrderKeys.invoiceDate] = order.invoiceDate;
       }
-      // Save the invoice ID and dates into the sheet (no await)
-      // TODO: add await
-      row.save();
+      // Wait to save the invoice ID and dates into the sheet
+      await row.save();
       orders.set(order.invoiceId, order);
     }
-  });
+  }
 
   console.log("\n> Number of invoices to generate: " + orders.size);
   orders.forEach((order) => {
