@@ -88,4 +88,4 @@ Then, run this command and check the console output and the out folder for your 
 
 ## Credits
 
-PDF templade based on: https://gist.github.com/maxkostinevich/c26bfb09450341ad37c1bd6c2cc51bb2
+PDF template based on: https://gist.github.com/maxkostinevich/c26bfb09450341ad37c1bd6c2cc51bb2
