@@ -42,23 +42,24 @@ const invoiceRegistry = new Map<string, number>();
 
 // Initialize Auth - see https://theoephraim.github.io/node-google-spreadsheet/#/getting-started/authentication
 (async function () {
-  console.log("> Connecting to Google Sheets");
+  console.log("> Connecting to Google Sheets\n");
 
-  const doc = new GoogleSpreadsheet(process.env.SHEET);
+  const doc = new GoogleSpreadsheet(process.env.sheet_id);
 
   // Load credentials
   await doc.useServiceAccountAuth({
-    client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-    private_key: process.env.GOOGLE_PRIVATE_KEY,
+    client_email: process.env.client_email,
+    private_key: process.env.private_key,
   });
 
   await doc.loadInfo(); // loads document properties and worksheets
-  // console.log(doc.title);
-  // await doc.updateProperties({ title: "renamed doc" });
+  console.log(`> Google Sheet title: ${doc.title}\n`);
 
   // Products
   let sheet = doc.sheetsByTitle["Products"];
   let rows = await sheet.getRows();
+  console.log(`> Parsing ${rows.length} products`);
+
   rows.forEach((row, rowIndex) => {
     const product: Product = {};
     Object.entries(ProductKeys).forEach(([key, tableKey]) => {
@@ -73,6 +74,8 @@ const invoiceRegistry = new Map<string, number>();
   // Customers
   sheet = doc.sheetsByTitle["Customers"];
   rows = await sheet.getRows();
+  console.log(`> Parsing ${rows.length} customers`);
+
   rows.forEach((row, rowIndex) => {
     const customer: Customer = {};
     Object.entries(CustomerKeys).forEach(([key, tableKey]) => {
@@ -87,6 +90,7 @@ const invoiceRegistry = new Map<string, number>();
   // Company
   sheet = doc.sheetsByTitle["Company"];
   rows = await sheet.getRows();
+
   rows.forEach((row, rowIndex) => {
     Object.entries(CompanyKeys).forEach(([key, tableKey]) => {
       if (!row[tableKey]) {
@@ -99,6 +103,8 @@ const invoiceRegistry = new Map<string, number>();
   // Orders
   sheet = doc.sheetsByTitle["Orders"];
   rows = await sheet.getRows();
+  console.log(`> Parsing ${rows.length} orders`);
+
   let previousInvoiceId = 0;
   let previousInvoiceDate: moment.Moment;
 
@@ -217,7 +223,7 @@ const invoiceRegistry = new Map<string, number>();
     generateInvoice(order);
   });
 
-  console.log("\n> Stopping");
+  console.log("\n> All done!");
 })();
 
 function generateInvoice(order: Order) {
@@ -232,7 +238,7 @@ function generateInvoice(order: Order) {
 
   const printer = new PdfPrinter(fonts);
 
-  // Header
+  // Item headers
   const rows: TableCell[][] = [
     [
       {
@@ -273,12 +279,10 @@ function generateInvoice(order: Order) {
         style: "itemNumber",
       },
       {
-        // text: item.price.toFixed(2).replace(".", ",") + " " + item.currency,
         text: item.price,
         style: "itemNumber",
       },
       {
-        // text: item.total.toFixed(2).replace(".", ",") + " " + item.currency,
         text: euro(euro(item.price).value * parseInt(item.amount)).format(),
         style: "itemNumber",
       },
@@ -296,20 +300,116 @@ function generateInvoice(order: Order) {
     "",
     {
       text: order.total,
-      // text: order.total.toFixed(2).replace(".", ",") + " " + order.currency,
       style: "itemTotal",
     },
   ]);
 
   const customer = customers.get(order.customerId);
   const docDefinition: TDocumentDefinitions = {
-    // header: {
-    //   columns: [
-    //     { text: "HEADER LEFT", style: "documentHeaderLeft" },
-    //     { text: "HEADER CENTER", style: "documentHeaderCenter" },
-    //     { text: "HEADER RIGHT", style: "documentHeaderRight" },
-    //   ],
-    // },
+    content: [
+      // Header
+      {
+        stack: [
+          {
+            text: company.name,
+            alignment: "right",
+            fontSize: 12,
+          },
+          {
+            text: [
+              company.address,
+              "\n",
+              `${company.cp} ${company.city}, ${company.country}`,
+              "\n",
+              `Tel: ${company.telephone}`,
+              "\n",
+              `Mail: ${company.mail}`,
+            ],
+            alignment: "right",
+          },
+        ],
+      },
+      "\n",
+      // Sender info
+      {
+        columns: [
+          {
+            text: `${company.name} - ${company.address} - ${company.cp} ${company.city} - ${company.country} `,
+            decoration: "underline",
+            fontSize: 8.6,
+          },
+        ],
+      },
+      "\n",
+      // Customer info
+      {
+        text: [
+          customer.businessName,
+          "\n",
+          customer.address,
+          "\n",
+          `${customer.cp} ${customer.city}`,
+          "\n",
+          customer.country,
+          "\n",
+          customer.vatId,
+          "\n",
+        ],
+      },
+      "\n",
+      // Invoice data
+      {
+        text: [
+          "Rechnungs-Nr.: ",
+          { text: order.invoiceId.toString(), bold: true },
+          "\n",
+          "Rechnungsdatum: ",
+          { text: order.invoiceDate, bold: true },
+          "\n",
+          "Leistungsdatum: ",
+          {
+            text: moment(order.executionDate, "DD.MM.YYYY").format("MMMM YYYY"),
+            bold: true,
+          },
+        ],
+        alignment: "right",
+      },
+      "\n\n",
+      {
+        text: "Rechnung",
+        bold: true,
+        fontSize: 14,
+      },
+      "\n",
+      // Items
+      {
+        table: {
+          // headers are automatically repeated if the table spans over multiple pages
+          // you can declare how many rows should be treated as headers
+          headerRows: 1,
+          widths: ["*", 75, 75, 75, 75],
+          body: rows,
+        },
+        layout: {
+          hLineWidth: function () {
+            return 0.7;
+          },
+          vLineWidth: function () {
+            return 0.7;
+          },
+        },
+      },
+      "\n",
+      {
+        text: [
+          checkVatProcedure(customer.vatProcedure),
+          "Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen.\n\n\n",
+          "Ich danke Ihnen für die gute Zusammenarbeit.\n",
+          "Mit freundlichen Grüßen\n\n",
+          company.name,
+        ],
+      },
+    ],
     footer: [
       {
         canvas: [
@@ -337,220 +437,23 @@ function generateInvoice(order: Order) {
               "\nBIC: ",
               company.bic,
             ],
-            // fontSize: 8.6,
             fontSize: 10.3,
             margin: [47.5, 0, 0, 0],
-            //  style: "documentFooterLeft"
           },
-          // { text: "FOOTER CENTER", style: "documentFooterCenter" },
           {
             text: [company.name, "\n", "USt-IdNr.: ", company.vatId],
-            // style: "documentFooterRight",
             width: 170,
-            // fontSize: 8.6,
             fontSize: 10.3,
-            // margin: [5, 5, 5, 5],
             alignment: "left",
           },
         ],
       },
     ],
-    content: [
-      // Header
-      {
-        stack: [
-          {
-            text: company.name,
-            alignment: "right",
-            fontSize: 12,
-          },
-          {
-            text: [
-              company.address,
-              "\n",
-              `${company.cp} ${company.city}, ${company.country}`,
-              "\n",
-              `Tel: ${company.telephone}`,
-              "\n",
-              `Mail: ${company.mail}`,
-            ],
-            alignment: "right",
-          },
-        ],
-      },
-
-      // Line breaks
-      "\n",
-
-      // Sender short
-      {
-        columns: [
-          {
-            text: `${company.name} - ${company.address} - ${company.cp} ${company.city} - ${company.country} `,
-            decoration: "underline",
-            fontSize: 8.6,
-          },
-        ],
-      },
-
-      // Line breaks
-      "\n",
-
-      // Billing
-      {
-        text: [
-          customer.businessName,
-          "\n",
-          customer.address,
-          "\n",
-          `${customer.cp} ${customer.city}`,
-          "\n",
-          customer.country,
-          "\n",
-          customer.vatId,
-          "\n",
-        ],
-      },
-      // Line breaks
-      "\n",
-
-      // Invoice data
-      {
-        text: [
-          "Rechnungs-Nr.: ",
-          { text: order.invoiceId.toString(), bold: true },
-          "\n",
-          "Rechnungsdatum: ",
-          { text: order.invoiceDate, bold: true },
-          "\n",
-          "Leistungsdatum: ",
-          {
-            text: moment(order.executionDate, "DD.MM.YYYY").format("MMMM YYYY"),
-            bold: true,
-          },
-        ],
-        alignment: "right",
-      },
-
-      // Line breaks
-      "\n\n",
-      {
-        text: "Rechnung",
-        bold: true,
-        fontSize: 14,
-      },
-
-      // Line breaks
-      "\n",
-
-      // Items
-      {
-        table: {
-          // headers are automatically repeated if the table spans over multiple pages
-          // you can declare how many rows should be treated as headers
-          headerRows: 1,
-          widths: ["*", 75, 75, 75, 75],
-          // heights: 2,
-          body: rows,
-        }, // table
-        //  layout: 'lightHorizontalLines'
-        layout: {
-          hLineWidth: function (i, node) {
-            return 0.7;
-          },
-          vLineWidth: function (i, node) {
-            return 0.7;
-          },
-        },
-      },
-      "\n",
-      {
-        text: [
-          checkVatProcedure(customer.vatProcedure),
-          "Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen.\n\n\n",
-          "Ich danke Ihnen für die gute Zusammenarbeit.\n",
-          "Mit freundlichen Grüßen\n\n",
-          company.name,
-        ],
-      },
-    ],
     styles: {
-      // Document Header
-      documentHeaderLeft: {
-        fontSize: 10,
-        margin: [5, 5, 5, 5],
-        alignment: "left",
-      },
-      documentHeaderCenter: {
-        fontSize: 10,
-        margin: [5, 5, 5, 5],
-        alignment: "center",
-      },
-      documentHeaderRight: {
-        fontSize: 10,
-        margin: [5, 5, 5, 5],
-        alignment: "right",
-      },
-      // Document Footer
-      documentFooterLeft: {
-        fontSize: 10,
-        margin: [5, 5, 5, 5],
-        alignment: "left",
-      },
-      documentFooterCenter: {
-        fontSize: 10,
-        margin: [5, 5, 5, 5],
-        alignment: "center",
-      },
-      documentFooterRight: {
-        fontSize: 10,
-        margin: [5, 5, 5, 5],
-        alignment: "left",
-      },
-      // Invoice Title
-      invoiceTitle: {
-        fontSize: 22,
-        bold: true,
-        alignment: "right",
-        margin: [0, 0, 0, 15],
-      },
-      // Invoice Details
-      invoiceSubTitle: {
-        fontSize: 12,
-        alignment: "right",
-      },
-      invoiceSubValue: {
-        fontSize: 12,
-        alignment: "right",
-      },
-      // Billing Headers
-      invoiceBillingTitle: {
-        fontSize: 14,
-        bold: true,
-        alignment: "left",
-        margin: [0, 20, 0, 5],
-      },
-      // Billing Details
-      invoiceBillingDetails: {
-        alignment: "left",
-      },
-      invoiceBillingAddressTitle: {
-        margin: [0, 7, 0, 3],
-        bold: true,
-      },
-      invoiceBillingAddress: {},
       // Items Header
       itemsHeader: {
         margin: [0, 4.2, 0, 4.2],
         bold: true,
-      },
-      // Item Title
-      itemTitle: {
-        bold: true,
-      },
-      itemSubTitle: {
-        italics: true,
-        fontSize: 11,
       },
       itemDescription: {
         margin: [0, 4.2, 0, 4.2],
@@ -563,48 +466,6 @@ function generateInvoice(order: Order) {
         margin: [0, 4.2, 0, 4.2],
         bold: true,
         alignment: "center",
-      },
-
-      // Items Footer (Subtotal, Total, Tax, etc)
-      itemsFooterSubTitle: {
-        margin: [0, 5, 0, 5],
-        bold: true,
-        alignment: "right",
-      },
-      itemsFooterSubValue: {
-        margin: [0, 5, 0, 5],
-        bold: true,
-        alignment: "center",
-      },
-      itemsFooterTotalTitle: {
-        margin: [0, 5, 0, 5],
-        bold: true,
-        alignment: "right",
-      },
-      itemsFooterTotalValue: {
-        margin: [0, 5, 0, 5],
-        bold: true,
-        alignment: "center",
-      },
-      signaturePlaceholder: {
-        margin: [0, 70, 0, 0],
-      },
-      signatureName: {
-        bold: true,
-        alignment: "center",
-      },
-      signatureJobTitle: {
-        italics: true,
-        fontSize: 10,
-        alignment: "center",
-      },
-      notesTitle: {
-        fontSize: 10,
-        bold: true,
-        margin: [0, 50, 0, 3],
-      },
-      notesText: {
-        fontSize: 10,
       },
       center: {
         alignment: "center",
@@ -620,10 +481,7 @@ function generateInvoice(order: Order) {
     pageMargins: [47.5, 69, 47.5, 120],
   };
 
-  const options = {
-    // ...
-  };
-
+  const options = {};
   const pdfDoc = printer.createPdfKitDocument(docDefinition, options);
   pdfDoc.pipe(fs.createWriteStream("./out/" + order.invoiceId + ".pdf"));
   pdfDoc.end();
