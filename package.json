@@ -1,8 +1,8 @@
 {
-  "name": "rechnung",
+  "name": "sheets-to-invoices",
   "version": "1.0.0",
   "main": "index.ts",
-  "repository": "https://github.com/joanroig/rechnung.git",
+  "repository": "https://github.com/joanroig/sheets-to-invoices.git",
   "author": "Joan Roig <joanroigsegura@gmail.com>",
   "license": "MIT",
   "scripts": {
