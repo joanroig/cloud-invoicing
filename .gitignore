@@ -103,8 +103,6 @@ dist
 # TernJS port file
 .tern-port
 
-# Rechnung custom files
+# Custom
 build
-in
 out
-config/credentials.json

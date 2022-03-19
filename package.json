@@ -7,8 +7,8 @@
   "license": "MIT",
   "scripts": {
     "build": "rimraf ./build && tsc",
-    "start:dev": "nodemon",
     "start": "npx ts-node src/index.ts",
+    "start:dev": "nodemon",
     "build:start": "npm run build && node build/index.js",
     "lint": "eslint . --ext .ts",
     "lint-and-fix": "eslint . --ext .ts --fix"
