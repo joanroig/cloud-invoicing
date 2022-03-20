@@ -7,7 +7,12 @@ Features:
 - Track customers, products and orders
 - Generate and manage invoice data
 - Automatic generation of invoice date and invoice number
+- Optional small business and reverse charge notices
 - Export invoices in pdf format (only in German language)
+
+What is not implemented:
+
+- VAT calculation
 
 See the [invoice examples](examples/) and start your own [accounting](https://docs.google.com/spreadsheets/d/1JRJ3KQetNAAPzsJat-JH7iIzc3OGumWQyFL5MZfm5UU/copy) sheet.
 
