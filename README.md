@@ -1,6 +1,6 @@
 # Sheets to invoices
 
-Little NodeJS project to create compliant German invoices from a Google Sheets accounting document.
+Little NodeJS project to create compliant German invoices from a Google Sheets accounting document. Deployable to Google App Engine and automatable via Apps Script.
 
 Features:
 
@@ -9,6 +9,8 @@ Features:
 - Automatic generation of invoice date and invoice number
 - Optional small business and reverse charge notices
 - Export invoices in pdf format (only in German language)
+- Optional: Upload invoices to Google Drive
+- Optional: Google Cloud integration for a fully automated solution.
 
 What is not implemented:
 
