@@ -47,37 +47,6 @@ const logger = winston.createLogger({
 const doc = new GoogleSpreadsheet(process.env.sheet_id);
 const driveFolderId = process.env.folder_id;
 
-// // Check memory
-// const used = process.memoryUsage();
-// Object.entries(used).map(([k, v]: [string, number]) => {
-//   logger.info(`${k} -> ${Math.round((v / 1024 / 1024) * 100) / 100} mb`);
-// });
-// const usedMemory = os.totalmem() - os.freemem(),
-//   totalMemory = os.totalmem();
-// const getpercentage = ((usedMemory / totalMemory) * 100).toFixed(2) + "%";
-// logger.info("Memory used in GB: " + (usedMemory / Math.pow(1024, 3)).toFixed(2));
-// logger.info("Used memory: " + getpercentage + "\n");
-
-// // Check if the drive folder is accessible and print existing files
-// driveService.files.list(
-//   {
-//     pageSize: 10,
-//     fields: "nextPageToken, files(id, name)",
-//   },
-//   (err, res) => {
-//     if (err) return logger.error("The API returned an error: " + err);
-//     const files = res.data.files;
-//     if (files.length) {
-//       logger.info("Files:");
-//       files.map((file) => {
-//         logger.info(`${file.name} (${file.id})`);
-//       });
-//     } else {
-//       logger.info("No files found.");
-//     }
-//   }
-// );
-
 // Google Drive login
 const driveAuth = new auth.GoogleAuth({
   credentials: {

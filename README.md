@@ -126,7 +126,7 @@ To provide a better understanding of all actors, the process flow looks like thi
 - [Create a Google Cloud project](https://console.cloud.google.com/cloud-resource-manager) and [enable billing](https://console.cloud.google.com/billing) for it.
 - _Optional: configure a Cloud Function to prevent unwanted billings: https://cloud.google.com/billing/docs/how-to/notify & https://www.youtube.com/watch?v=KiTg8RPpGG4_
 - [Install gcloud CLI](https://cloud.google.com/sdk/docs/install-sdk) and run `gcloud init` in the project root folder and connect to your project.
-- Run the command `yarn gcloud:deploy` in the root directory to upload the nodejs project.
+- Run the command `yarn gcloud:deploy` in the root directory to upload the nodejs project. The build folder will be built and then deployed, if you execute the command `gcloud app deploy` remember to build the project before.
 - [Enable IAP](https://console.cloud.google.com/security/iap) for the project (toggle the button for your App Engune app), select "All Web Services" and add the gmail you use to access in the Google Sheets document by pressing the "Add Principal" button. Assign the role `IAP-secured Web App User`
 - If done right, go to the url that appears in the IAP (Published column) with the format `[...]appspot.com` and you should be able to access the deployed code only with the email of the previous step.
 
