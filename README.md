@@ -10,7 +10,7 @@ Features:
 - Optional small business and reverse charge notices
 - Export invoices in pdf format (only in German language)
 - Optional: Upload invoices to Google Drive
-- Optional: Google Cloud integration for a fully automated solution.
+- Optional: Google Cloud Platform integration for a fully automated solution
 
 What is not implemented:
 
