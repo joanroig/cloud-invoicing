@@ -17,33 +17,33 @@
     "lint-and-fix": "eslint . --ext .ts --fix"
   },
   "dependencies": {
+    "@googleapis/drive": "^2.3.0",
+    "config": "^3.3.7",
+    "currency.js": "^2.0.4",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "google-auth-library": "^7.14.0",
+    "google-spreadsheet": "^3.2.0",
+    "moment": "^2.29.1",
+    "nodemon": "^2.0.15",
+    "pdfmake": "^0.2.4",
+    "ts-node": "^10.7.0",
+    "typescript": "^4.6.2",
+    "winston": "^3.6.0"
+  },
+  "devDependencies": {
     "@commitlint/cli": "^16.2.3",
     "@commitlint/config-conventional": "^16.2.1",
-    "@googleapis/drive": "^2.3.0",
+    "@types/config": "0.0.41",
     "@types/express": "^4.17.13",
     "@types/google-spreadsheet": "^3.1.5",
     "@types/node": "^17.0.22",
     "@types/pdfmake": "^0.1.21",
     "@typescript-eslint/eslint-plugin": "^5.16.0",
     "@typescript-eslint/parser": "^5.16.0",
-    "config": "^3.3.7",
-    "currency.js": "^2.0.4",
-    "dotenv": "^16.0.0",
     "eslint": "^8.11.0",
-    "express": "^4.17.3",
-    "google-auth-library": "^7.14.0",
-    "google-spreadsheet": "^3.2.0",
     "husky": "^7.0.4",
-    "moment": "^2.29.1",
-    "nodemon": "^2.0.15",
-    "pdfmake": "^0.2.4",
-    "rimraf": "^3.0.2",
-    "ts-node": "^10.7.0",
-    "typescript": "^4.6.2",
-    "winston": "^3.6.0"
-  },
-  "devDependencies": {
-    "@types/config": "0.0.41",
-    "replace-ts-alias": "1.0.11"
+    "replace-ts-alias": "1.0.11",
+    "rimraf": "^3.0.2"
   }
 }
