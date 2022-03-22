@@ -43,7 +43,7 @@
     "winston": "^3.6.0"
   },
   "devDependencies": {
-    "@types/config": "^0.0.41",
-    "replace-ts-alias": "^1.0.11"
+    "@types/config": "0.0.41",
+    "replace-ts-alias": "1.0.11"
   }
 }
