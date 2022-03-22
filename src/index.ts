@@ -1,8 +1,10 @@
 import express from "express";
-import { run } from "./generate";
+import { run } from "./app/parser";
+
+// Run an express server to generate invoices on demand
 const app = express();
 
-app.get("/", (req: any, res: any) => {
+app.get("/", (req, res) => {
   run().then(
     (result) => {
       res.send(result);
@@ -12,7 +14,7 @@ app.get("/", (req: any, res: any) => {
     }
   );
 });
-app.post("/", (req: any, res: any) => {
+app.post("/", (req, res) => {
   run().then(
     (result) => {
       res.send(result);

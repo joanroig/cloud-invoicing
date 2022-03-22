@@ -90,20 +90,20 @@ To configure it:
 - Create a folder in Drive and share the folder with the email your service account.
 - Put the folder ID from the URL of your Drive folder into the `folder_id` of the `.env` file.
 
-## Running the project standalone
+## Running the project manually
 
 Add some data in the sheet and activate the checkboxes of the `Run` column in the `Orders` tab for each invoice you want to generate.
 
 Then, run this command and check the console output and the out folder for your results:
 
-    $ yarn start:standalone
+    $ yarn start:run
 
 ## Build and run the production server
 
 The project can run as a server to execute the invoice generation on demand. This will be used in next steps to trigger invoice generation directly on the cloud. You can test it locally by executing those commands, and then accessing the http://localhost:8080 in your browser every time you want to trigger the generation:
 
     $ yarn build
-    $ yarn run
+    $ yarn start
 
 ## Apps Script & Google App Engine integration
 
@@ -116,17 +116,28 @@ We need to create a Google Cloud project, upload the code to App Engine, create 
 To provide a better understanding of all actors, the process flow looks like this:
 
 1. `Google Sheet` triggers `Apps Script`
-2. `Apps Script` sends POST request to `App Engine` and does login via `IAP`
+2. `Apps Script` sends POST request to `App Engine` and does authenticate via `IAP`
 3. `App Engine` runs the `Invoice Generator`
 4. The `Invoice Generator` uses a `Service Account` to:
    - Read `Google Sheet` and check all data
    - Update `Google Sheet`
    - Upload invoices to `Google Drive`
 
+Following the guide **completely** will require to enable multiple Google Cloud APIs. You will be asked to enable them when needed via CLI or via the Google Cloud website:
+
+- Cloud Billing API
+- Cloud Logging API
+- Cloud Build API
+- Google Sheets API
+- Google Drive API
+- Cloud Identity-Aware Proxy API
+- Cloud Pub/Sub API
+- Cloud Functions API
+
 ### Google App Engine setup
 
 - [Create a Google Cloud project](https://console.cloud.google.com/cloud-resource-manager) and [enable billing](https://console.cloud.google.com/billing) for it.
-- _Optional: configure a Cloud Function to prevent unwanted billings: https://cloud.google.com/billing/docs/how-to/notify & https://www.youtube.com/watch?v=KiTg8RPpGG4_
+- _Optional: configure a Cloud Function to prevent unwanted billings with the [official documentation](https://cloud.google.com/billing/docs/how-to/notify) or with [this video](https://www.youtube.com/watch?v=KiTg8RPpGG4_).\_
 - [Install gcloud CLI](https://cloud.google.com/sdk/docs/install-sdk) and run `gcloud init` in the project root folder and connect to your project.
 - Run the command `yarn gcloud:deploy` in the root directory to upload the nodejs project. The build folder will be built and then deployed, if you execute the command `gcloud app deploy` remember to build the project before.
 - [Enable IAP](https://console.cloud.google.com/security/iap) for the project (toggle the button for your App Engune app), select "All Web Services" and add the gmail you use to access in the Google Sheets document by pressing the "Add Principal" button. Assign the role `IAP-secured Web App User`
@@ -146,6 +157,16 @@ To provide a better understanding of all actors, the process flow looks like thi
 ### Running on the cloud
 
 Now you should be able to open your accounting sheet and find a menu called `Generate Invoices`, click the `Run now` option and the invoices should appear in your Drive folder.
+
+### Debugging on the cloud
+
+Check the latest run logs on Google App Engine by running this command:
+
+    $ yarn run gcloud:logs
+
+Remember that you can always redeploy by running:
+
+    $ yarn run gcloud:deploy
 
 ## Credits
 
