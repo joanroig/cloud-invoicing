@@ -338,9 +338,9 @@
     "@types/connect" "*"
     "@types/node" "*"
 
-"@types/config@^0.0.41":
+"@types/config@0.0.41":
   version "0.0.41"
-  resolved "https://registry.npmjs.org/@types/config/-/config-0.0.41.tgz"
+  resolved "https://registry.yarnpkg.com/@types/config/-/config-0.0.41.tgz#c8237ab09730380801f3643beaefa077ca5f3c28"
   integrity sha512-HjXUmIld0gwvyG8MU/17QtLzOyuMX4jbGuijmS9sWsob5xxgZ/hY9cbRCaHIHqTQ3HMLhwS3F8uXq3Bt9zgzHA==
 
 "@types/connect@*":
@@ -3132,9 +3132,9 @@ replace-in-file@^6.1.0:
     glob "^7.2.0"
     yargs "^17.2.1"
 
-replace-ts-alias@^1.0.11:
+replace-ts-alias@1.0.11:
   version "1.0.11"
-  resolved "https://registry.npmjs.org/replace-ts-alias/-/replace-ts-alias-1.0.11.tgz"
+  resolved "https://registry.yarnpkg.com/replace-ts-alias/-/replace-ts-alias-1.0.11.tgz#eb85a43b36cac100bd299946a2c814b6077a6d86"
   integrity sha512-Lt1oYI6MA3S5MXKb3izQnYj5q96ogLTDL6geN7ib7VcIDI4sTaAWXnGL8J0tGyVsXyAgBFf9blAZ/P3+y1mKUg==
   dependencies:
     replace-in-file "^6.1.0"
