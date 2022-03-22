@@ -247,8 +247,8 @@ export async function run(cloud = true): Promise<string> {
     logger.info(`Invoice ready at: ${filePath}\n`);
   }
 
-  logger.info(`Number of invoices generated: ${orders.size}\n`);
-  return `Number of invoices generated: ${orders.size}`;
+  logger.info(`Generated ${orders.size} invoices\n`);
+  return `Generated ${orders.size} invoices.`;
 }
 
 function error(str: string) {
