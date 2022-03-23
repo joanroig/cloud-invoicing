@@ -32,7 +32,7 @@
 - Translations
 - Multiple invoice formats
 
-> Disclaimer: _This project may not be useful if you have different needs or if you already have another kind of accounting system. I am not a tax advisor, and as stated in the [license](LICENSE), I am by no means responsible for the use of this software._
+> :warning: **Disclaimer: _I am not a tax advisor, and as stated in the [license](LICENSE), I am by no means responsible for the use of this software._** _Please note that I built this project for my own needs and it may not fit your use case._
 
 ---
 
