@@ -1,8 +1,7 @@
-// get the Console class
-import config from "config";
-import "dotenv/config";
 import { GoogleSpreadsheet } from "google-spreadsheet";
 import moment from "moment";
+import { Logger } from "../common/logger";
+import Utils from "../common/utils";
 import {
   Company,
   CompanyKeys,
@@ -14,108 +13,84 @@ import {
   Product,
   ProductKeys,
 } from "../models/sheets.model";
-import { generateInvoice } from "./generator";
-import { connectDrive } from "./uploader";
-import { euro, logger } from "./utils";
 
-// Sheets connection
-let doc: GoogleSpreadsheet;
-// Upload to drive flag
-let upload: boolean;
-// Out folder path
-let outFolder: string;
+const logger = Logger.getLogger("Parse");
 
 moment.locale("de");
 
-export async function run(cloud = true): Promise<string> {
-  const company: Company = {};
+export async function parseProducts(doc: GoogleSpreadsheet) {
   const products = new Map<string, Product>();
-  const customers = new Map<string, Customer>();
-  const orderIds = new Set<string>();
-  const orders = new Map<string, Order>();
-  const invoiceRegistry = new Map<string, number>();
-  const today = moment(new Date()).format("DD.MM.YYYY");
-
-  if (cloud) {
-    logger.info("# SERVER RUN #\n");
-    // In Google Cloud, only the tmp folder can be written
-    outFolder = "/tmp/";
-    // In cloud mode, upload to google drive is mandatory
-    upload = true;
-  } else {
-    logger.info("# RUNNING ONCE #\n");
-    outFolder = "./out/";
-    upload = config.get("upload-to-drive");
-  }
-
-  if (upload) {
-    // Conect to Google Drive
-    connectDrive();
-  }
-
-  // Conect to Google Sheets
-  logger.info("Connecting to Google Sheets\n");
-  doc = new GoogleSpreadsheet(process.env.sheet_id);
-
-  // Load credentials
-  await doc.useServiceAccountAuth({
-    client_email: process.env.client_email,
-    private_key: process.env.private_key,
-  });
-
-  // Load document properties and worksheets
-  await doc.loadInfo();
-  logger.info(`Google Sheet title: ${doc.title}\n`);
 
   // Parse Products
-  let sheet = doc.sheetsByTitle["Products"];
-  let rows = await sheet.getRows();
+  const sheet = doc.sheetsByTitle["Products"];
+  const rows = await sheet.getRows();
   logger.info(`Parsing ${rows.length} products`);
 
   rows.forEach((row, rowIndex) => {
     const product: Product = {};
     Object.entries(ProductKeys).forEach(([key, tableKey]) => {
       if (!row[tableKey]) {
-        error(`Error: Missing product '${tableKey}' in row: ${rowIndex}`);
+        Utils.error(`Error: Missing product '${tableKey}' in row: ${rowIndex}`);
       }
       product[key as keyof typeof ProductKeys] = row[tableKey];
     });
     products.set(product.id, product);
   });
+  return products;
+}
+
+export async function parseCustomers(doc: GoogleSpreadsheet) {
+  const customers = new Map<string, Customer>();
 
   // Parse Customers
-  sheet = doc.sheetsByTitle["Customers"];
-  rows = await sheet.getRows();
+  const sheet = doc.sheetsByTitle["Customers"];
+  const rows = await sheet.getRows();
   logger.info(`Parsing ${rows.length} customers`);
 
   rows.forEach((row, rowIndex) => {
     const customer: Customer = {};
     Object.entries(CustomerKeys).forEach(([key, tableKey]) => {
       if (!row[tableKey] && ![CustomerKeys.vatId].includes(tableKey)) {
-        error(`Error: Missing customer '${tableKey}' in row: ${rowIndex}`);
+        Utils.error(
+          `Error: Missing customer '${tableKey}' in row: ${rowIndex}`
+        );
       }
       customer[key as keyof typeof CustomerKeys] = row[tableKey];
     });
     customers.set(customer.id, customer);
   });
+  return customers;
+}
+
+export async function parseCompany(doc: GoogleSpreadsheet) {
+  const company: Company = {};
 
   // Parse Company
-  sheet = doc.sheetsByTitle["Company"];
-  rows = await sheet.getRows();
+  const sheet = doc.sheetsByTitle["Company"];
+  const rows = await sheet.getRows();
 
   rows.forEach((row, rowIndex) => {
     Object.entries(CompanyKeys).forEach(([key, tableKey]) => {
       if (!row[tableKey]) {
-        error(`Error: Missing company '${tableKey}' in row: ${rowIndex}`);
+        Utils.error(`Error: Missing company '${tableKey}' in row: ${rowIndex}`);
       }
       company[key as keyof typeof CompanyKeys] = row[tableKey];
     });
   });
+  return company;
+}
+
+export async function parseOrders(doc: GoogleSpreadsheet) {
+  const orders: Order[] = [];
+
+  const orderIds = new Set<string>();
+  const invoiceRegistry = new Map<string, number>();
+  const today = moment(new Date()).format("DD.MM.YYYY");
 
   // Parse Orders
-  sheet = doc.sheetsByTitle["Orders"];
-  rows = await sheet.getRows();
-  logger.info(`Parsing ${rows.length} orders\n`);
+  const sheet = doc.sheetsByTitle["Orders"];
+  const rows = await sheet.getRows();
+  logger.info(`Parsing ${rows.length} orders`);
 
   let previousInvoiceId = 0;
   let previousInvoiceDate: moment.Moment;
@@ -127,7 +102,7 @@ export async function run(cloud = true): Promise<string> {
         !row[tableKey] &&
         ![OrderKeys.invoiceId, OrderKeys.invoiceDate].includes(tableKey)
       ) {
-        error(`Error: Missing order '${tableKey}' in row: ${rowIndex}`);
+        Utils.error(`Error: Missing order '${tableKey}' in row: ${rowIndex}`);
       }
       order[key as keyof typeof OrderKeys] = row[tableKey];
     });
@@ -150,7 +125,7 @@ export async function run(cloud = true): Promise<string> {
         index++;
       } else {
         // Throw an error if some of the columns are missing information
-        error(
+        Utils.error(
           `Error: Incomplete item '${productId}' '${amount}' '${price}' in row: ${rowIndex}`
         );
       }
@@ -158,13 +133,13 @@ export async function run(cloud = true): Promise<string> {
 
     // Check if the order prices are correct
     const sum = order.items.reduce((partialSum, a) => {
-      const subtotal = euro(a.price).value * parseInt(a.amount);
+      const subtotal = Utils.euro(a.price).value * parseInt(a.amount);
       if (subtotal === 0) {
-        error(`Error: Subtotal is zero in row: ${rowIndex}`);
+        Utils.error(`Error: Subtotal is zero in row: ${rowIndex}`);
       }
       return partialSum + subtotal;
     }, 0);
-    order.total = euro(sum).format();
+    order.total = Utils.euro(sum).format();
 
     // Generate invoice date if its not provided
     if (!order.invoiceDate) {
@@ -178,7 +153,7 @@ export async function run(cloud = true): Promise<string> {
     // Generate invoice ID if not provided
     if (!order.invoiceId) {
       if (suffix > 99) {
-        error(`Error: More than 99 invoices in one month.`);
+        Utils.error(`Error: More than 99 invoices in one month.`);
       }
 
       // Suffix always has 2 digits
@@ -191,12 +166,12 @@ export async function run(cloud = true): Promise<string> {
 
     // Check for duplicate invoice IDs
     if (orderIds.has(order.invoiceId)) {
-      error(`Error: Duplicated invoice ID: ${order.invoiceId}`);
+      Utils.error(`Error: Duplicated invoice ID: ${order.invoiceId}`);
     }
 
     // Check if the invoice ID is greater than the previous
     if (previousInvoiceId > parseInt(order.invoiceId)) {
-      error(
+      Utils.error(
         `Current invoice ID is lower than previous invoice: ${previousInvoiceId} > ${order.invoiceId}`
       );
     }
@@ -205,7 +180,7 @@ export async function run(cloud = true): Promise<string> {
     // Check if the invoice date comes after the previous invoice
     const invoiceDate = moment(order.invoiceDate, "DD.MM.YYYY");
     if (previousInvoiceDate?.isAfter(invoiceDate)) {
-      error(
+      Utils.error(
         `Error: The invoice date is before the previous invoice: ${previousInvoiceDate.format(
           "DD.MM.YYYY"
         )} > ${order.invoiceDate}`
@@ -228,30 +203,8 @@ export async function run(cloud = true): Promise<string> {
       }
       // Wait to save the idata into the sheet
       await row.save();
-      orders.set(order.invoiceId, order);
+      orders.push(order);
     }
   }
-
-  logger.info(`Generating ${orders.size} invoices\n`);
-
-  for (const order of orders.values()) {
-    logger.info(`Generating invoice: ${order.invoiceId}`);
-    const filePath = await generateInvoice(
-      order,
-      company,
-      products,
-      customers,
-      outFolder,
-      upload
-    );
-    logger.info(`Invoice ready at: ${filePath}\n`);
-  }
-
-  logger.info(`Generated ${orders.size} invoices\n`);
-  return `Generated ${orders.size} invoices.`;
-}
-
-function error(str: string) {
-  logger.error(str + "\n");
-  throw new Error(str);
+  return orders;
 }

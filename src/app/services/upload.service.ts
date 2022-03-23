@@ -1,6 +1,8 @@
 import { auth, drive, drive_v3 } from "@googleapis/drive";
 import * as fs from "fs";
-import { logger } from "./utils";
+import { Logger } from "../common/logger";
+
+const logger = Logger.getLogger("Upload");
 
 const driveFolderId = process.env.folder_id;
 
@@ -17,7 +19,7 @@ const driveAuth = new auth.GoogleAuth({
 });
 
 export async function connectDrive() {
-  logger.info("Connecting to Google Drive\n");
+  logger.info("Connecting to Google Drive");
   driveService = drive({ version: "v3", auth: driveAuth });
 }
 
@@ -26,7 +28,7 @@ export async function uploadFile(
   fileName: string,
   filePath: string,
   fileMimeType: string
-): Promise<string> {
+) {
   const list = await driveService.files.list({
     q: `name = "${fileName}" and "${driveFolderId}" in parents`,
     pageSize: 10,
@@ -35,6 +37,7 @@ export async function uploadFile(
 
   const files = list.data.files;
   if (files.length) {
+    logger.info(`Overwriting ${fileName} in Drive`);
     await driveService.files.update({
       fileId: files[0].id,
       media: {
@@ -42,8 +45,8 @@ export async function uploadFile(
         body: fs.createReadStream(filePath),
       },
     });
-    return `Google Drive: Found previous file, updating: ${fileName}`;
   } else {
+    logger.info(`Uploading ${fileName} to Drive`);
     await driveService.files.create({
       requestBody: {
         name: fileName,
@@ -55,6 +58,5 @@ export async function uploadFile(
         body: fs.createReadStream(filePath),
       },
     });
-    return `Google Drive: No previous file found, creating: ${fileName}`;
   }
 }
