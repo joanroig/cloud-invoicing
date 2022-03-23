@@ -1,0 +1,47 @@
+#!/bin/sh
+. "$(dirname "$0")/_/husky.sh"
+
+branch=$(git branch --show-current)
+
+# # Prevent committing into master
+# if [ "$branch" = "master" ]; then
+#   echo "You can't commit directly to master branch"
+#   exit 1
+# fi
+
+# Enforce branch naming policy
+valid_branch_regex='^((fix|feat|chore|tests)\/[a-zA-Z0-9\-]+)$|^(develop)$|^(master)$'
+message="There is something wrong with your branch name $branch. Branch names in this project must adhere to this contract: $valid_branch_regex. Your commit will be rejected. You should rename your branch to a valid name and try again."
+if [[ ! $branch =~ $valid_branch_regex ]]; then
+  echo "$message"
+  exit 1
+fi
+
+# Full paths of files from the repo root that should not be committed, separated by newlines
+MUST_NOT_CHANGE='.env'
+
+# Format staged files with eslint and prettier as a plugin
+yarn run format:staged
+
+# Exclude from the commit by unstaging the files
+git reset -- "$MUST_NOT_CHANGE"
+
+if git rev-parse --verify HEAD >/dev/null 2>&1
+then
+  against=HEAD
+else
+  # Initial commit: diff against an empty tree object
+  against=0debdcef2ac2074e9d516526b94e345167dd72ac
+fi
+
+exec 1>&2
+
+if git diff --cached --name-only $against |
+   grep --quiet --line-regexp --fixed-strings "$MUST_NOT_CHANGE"
+then
+  # Just in case any of the files is not unstaged, prevent the commit
+  echo Commit would modify one or more files that must not change: "$MUST_NOT_CHANGE"
+  exit 1
+else
+  exit 0
+fi
