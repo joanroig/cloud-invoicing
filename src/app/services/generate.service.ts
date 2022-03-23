@@ -2,6 +2,8 @@ import * as fs from "fs";
 import moment from "moment";
 import PdfPrinter from "pdfmake";
 import { TableCell, TDocumentDefinitions } from "pdfmake/interfaces";
+import { Logger } from "../common/logger";
+import Utils from "../common/utils";
 import {
   Company,
   Customer,
@@ -9,30 +11,60 @@ import {
   Product,
   VatProcedure,
 } from "../models/sheets.model";
-import { uploadFile } from "./uploader";
-import { euro, logger } from "./utils";
+import * as UploadService from "./upload.service";
+
+const logger = Logger.getLogger("Generate");
 
 moment.locale("de");
 
-export async function generateInvoice(
-  order: Order,
+export async function generateInvoices(
+  orders: Order[],
   company: Company,
   products: Map<string, Product>,
   customers: Map<string, Customer>,
   outFolder: string,
   upload: boolean
-): Promise<string> {
-  // Define font files
-  const fonts = {
-    Arial: {
-      normal: "fonts/Arial.ttf",
-      bold: "fonts/Arial-Bold.ttf",
-      italics: "fonts/Arial-Italic.ttf",
-    },
-  };
+) {
+  if (upload) {
+    UploadService.connectDrive();
+  }
 
-  const printer = new PdfPrinter(fonts);
+  // Generate invoices
+  for (const [index, order] of orders.entries()) {
+    logger.info(`===== Invoice ${index + 1} =====`);
+    logger.info(`Generating invoice: ${order.invoiceId}`);
 
+    const { fileName, filePath } = await buildPdf(
+      order,
+      company,
+      products,
+      customers.get(order.customerId),
+      outFolder
+    );
+
+    logger.info(`Document ready at: ${filePath}`);
+
+    if (upload) {
+      await UploadService.uploadFile(fileName, filePath, "application/pdf");
+    }
+  }
+}
+
+// Get VAT notice text depending on the VAT procedure
+function getVatNotice(vat: string): string {
+  const procedure = vat as VatProcedure;
+  switch (procedure) {
+    case VatProcedure.reverseCharge:
+      return "Reverse Charge: Die Steuerschuldnerschaft geht auf den Leistungsempfänger über.\n\n";
+    case VatProcedure.kleinunternehmer:
+      return "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.\n\n";
+    default:
+      logger.error(`Unkwnown VAT procedure: ${vat}`);
+      break;
+  }
+}
+
+function buildItemBody(order: Order, products: Map<string, Product>) {
   // Item headers
   const rows: TableCell[][] = [
     [
@@ -58,6 +90,7 @@ export async function generateInvoice(
       },
     ],
   ];
+
   // Item rows
   order.items.forEach((item) => {
     rows.push([
@@ -78,11 +111,14 @@ export async function generateInvoice(
         style: "itemNumber",
       },
       {
-        text: euro(euro(item.price).value * parseInt(item.amount)).format(),
+        text: Utils.euro(
+          Utils.euro(item.price).value * parseInt(item.amount)
+        ).format(),
         style: "itemNumber",
       },
     ]);
   });
+
   // Total row
   rows.push([
     {
@@ -99,7 +135,28 @@ export async function generateInvoice(
     },
   ]);
 
-  const customer = customers.get(order.customerId);
+  return rows;
+}
+
+// Generate a pdf for a given order
+async function buildPdf(
+  order: Order,
+  company: Company,
+  products: Map<string, Product>,
+  customer: Customer,
+  outFolder: string
+): Promise<{ fileName: string; filePath: string }> {
+  // Define font files
+  const fonts = {
+    Arial: {
+      normal: "fonts/Arial.ttf",
+      bold: "fonts/Arial-Bold.ttf",
+      italics: "fonts/Arial-Italic.ttf",
+    },
+  };
+
+  const printer = new PdfPrinter(fonts);
+
   const docDefinition: TDocumentDefinitions = {
     content: [
       // Header
@@ -183,7 +240,7 @@ export async function generateInvoice(
           // you can declare how many rows should be treated as headers
           headerRows: 1,
           widths: ["*", 75, 75, 75, 75],
-          body: rows,
+          body: buildItemBody(order, products),
         },
         layout: {
           hLineWidth: function () {
@@ -197,7 +254,7 @@ export async function generateInvoice(
       "\n",
       {
         text: [
-          checkVatProcedure(customer.vatProcedure),
+          getVatNotice(customer.vatProcedure),
           "Bitte überweisen Sie den Rechnungsbetrag innerhalb von 14 Tagen.\n\n\n",
           "Ich danke Ihnen für die gute Zusammenarbeit.\n",
           "Mit freundlichen Grüßen\n\n",
@@ -205,6 +262,7 @@ export async function generateInvoice(
         ],
       },
     ],
+    // Footer
     footer: [
       {
         canvas: [
@@ -245,7 +303,6 @@ export async function generateInvoice(
       },
     ],
     styles: {
-      // Items Header
       itemsHeader: {
         margin: [0, 4.2, 0, 4.2],
         bold: true,
@@ -276,30 +333,11 @@ export async function generateInvoice(
     pageMargins: [47.5, 69, 47.5, 120],
   };
 
-  const options = {};
-  const pdfDoc = printer.createPdfKitDocument(docDefinition, options);
-  const filename = order.invoiceId + ".pdf";
-  const filepath = `${outFolder}${filename}`;
-  pdfDoc.pipe(fs.createWriteStream(filepath));
+  const pdfDoc = printer.createPdfKitDocument(docDefinition);
+  const fileName = order.invoiceId + ".pdf";
+  const filePath = `${outFolder}${fileName}`;
+  pdfDoc.pipe(fs.createWriteStream(filePath));
   pdfDoc.end();
 
-  if (upload) {
-    const result = await uploadFile(filename, filepath, "application/pdf");
-    logger.info(result);
-  }
-
-  return filepath;
-}
-
-function checkVatProcedure(vat: string): string {
-  const vatProcedure = vat as VatProcedure;
-  switch (vatProcedure) {
-    case VatProcedure.reverseCharge:
-      return "Reverse Charge: Die Steuerschuldnerschaft geht auf den Leistungsempfänger über.\n\n";
-    case VatProcedure.kleinunternehmer:
-      return "Gemäß § 19 UStG wird keine Umsatzsteuer berechnet.\n\n";
-    default:
-      logger.error(`Unkwnown vat procedure: ${vat}`);
-      break;
-  }
+  return { fileName, filePath };
 }

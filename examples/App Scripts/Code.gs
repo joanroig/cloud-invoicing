@@ -48,7 +48,7 @@ function run() {
     });
     var result = response.getContentText();
     Logger.log(JSON.stringify(result, null, 2));
-    SpreadsheetApp.getActiveSpreadsheet().toast(result, "Status");
+    SpreadsheetApp.getActiveSpreadsheet().toast(result, "Result");
   } else {
     var authorizationUrl = service.getAuthorizationUrl();
     Logger.log(
