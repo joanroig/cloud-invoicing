@@ -1,8 +1,8 @@
 {
-  "name": "sheets-to-invoices",
+  "name": "cloud-invoicing",
   "version": "1.0.0",
   "main": "server.ts",
-  "repository": "https://github.com/joanroig/sheets-to-invoices.git",
+  "repository": "https://github.com/joanroig/cloud-invoicing.git",
   "author": "Joan Roig <joanroigsegura@gmail.com>",
   "license": "MIT",
   "scripts": {
@@ -10,7 +10,7 @@
     "start": "node build/server.js",
     "start:once": "npx ts-node src/index.ts",
     "start:dev": "nodemon",
-    "gcloud:deploy": "yarn run build && gcloud app deploy --quiet --project sheets-to-invoices",
+    "gcloud:deploy": "yarn run build && gcloud app deploy --quiet --project cloud-invoicing",
     "gcloud:logs": "gcloud app logs read",
     "gcloud:list-files-for-upload": "gcloud meta list-files-for-upload",
     "lint": "eslint . --ext .ts",
