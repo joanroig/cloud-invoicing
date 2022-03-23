@@ -1,24 +1,38 @@
-# Sheets to Invoices
+<h1 align="center">Cloud Invoicing</h1>
+<p align="center">
+  <img src="examples/logo.png" alt="logo" height="120px"/>
+  <br>
+  <i>NodeJS project to create German invoices from a Google Sheets document.<br>Deployable to Google App Engine and automatable using Apps Script.</i>
+  <br>
+  <p align="center">
+  See the <a href="examples/"><strong>invoice examples</strong></a> and start your own <a href="https://docs.google.com/spreadsheets/d/1JRJ3KQetNAAPzsJat-JH7iIzc3OGumWQyFL5MZfm5UU/copy"><strong>accounting sheet</strong></a>
+  <br>
+</p>
+</p>
+<hr>
 
-Little NodeJS project to create compliant German invoices from a Google Sheets accounting document. Deployable to Google App Engine and automatable using Apps Script.
+<!-- See the [invoice examples](examples/) and start your own [accounting](https://docs.google.com/spreadsheets/d/1JRJ3KQetNAAPzsJat-JH7iIzc3OGumWQyFL5MZfm5UU/copy) sheet. -->
 
-Features:
+## Features
 
 - Track customers, products and orders
 - Generate and manage invoice data
 - Automatic generation of invoice date and invoice number
-- Optional small business and reverse-charge notices
 - Export invoices in pdf format (only in German language)
-- Optional: Upload invoices to Google Drive
-- Optional: Google Cloud Platform integration for a fully automated solution
+- Small business owner and reverse-charge VAT notices
 
-What is not implemented:
+### Integrations
+
+- Upload invoices to Google Drive
+- Run as a server on Google Cloud Platform for a fully automated solution
+
+### What is not implemented
 
 - VAT calculation
+- Translations
+- Multiple invoice formats
 
-See the [invoice examples](examples/) and start your own [accounting](https://docs.google.com/spreadsheets/d/1JRJ3KQetNAAPzsJat-JH7iIzc3OGumWQyFL5MZfm5UU/copy) sheet.
-
-_Note: This project may not be useful if you have different needs or if you already have another kind of accounting system. This is all based on my needs._
+> Disclaimer: _This project may not be useful if you have different needs or if you already have another kind of accounting system. I am not a tax advisor, and as stated in the [license](LICENSE), I am by no means responsible for the use of this software._
 
 ---
 
@@ -30,12 +44,12 @@ You will only need Node.js and a node global package, Yarn, installed in your en
 
 - #### Node installation on Windows
 
-  Just go on [official Node.js website](https://nodejs.org/) and download the installer.
-  Also, be sure to have `git` available in your PATH, `npm` might need it (You can find git [here](https://git-scm.com/)).
+  Go to the [official Node.js website](https://nodejs.org/) and download the installer.
+  Be sure to have `git` available in your PATH, `npm` might need it (you can find git [here](https://git-scm.com/)).
 
 - #### Node installation on Ubuntu
 
-  You can install nodejs and npm easily with apt install, just run the following commands:
+  Install nodejs and npm with apt install, just run the following commands:
 
       $ sudo apt install nodejs
       $ sudo apt install npm
@@ -43,7 +57,7 @@ You will only need Node.js and a node global package, Yarn, installed in your en
 - #### Other Operating Systems
   You can find more information about the installation on the [official Node.js website](https://nodejs.org/) and the [official NPM website](https://npmjs.org/).
 
-If the installation was successful, you should be able to run the following command:
+If the installation was successful, you should be able to run the following commands:
 
     $ node --version
     v16.14.0
@@ -55,19 +69,19 @@ If the installation was successful, you should be able to run the following comm
 
 ### Yarn installation
 
-After installing node, this project will need yarn too, so just run the following command:
+After installing node and npm you will also need to install yarn:
 
       $ npm install -g yarn
 
----
+## Prepare the project folder
 
-## Install
+Download the project and install its dependencies:
 
-    $ git clone https://github.com/joanroig/sheets-to-invoices
-    $ cd sheets-to-invoices
+    $ git clone https://github.com/joanroig/cloud-invoicing
+    $ cd cloud-invoicing
     $ yarn install
 
-## Configure app
+## Configuration
 
 Create a `.env` file in the root directory based on the provided `.env.example`, then edit it with your settings. You will need to:
 
@@ -94,18 +108,18 @@ Then, run the following command and check the console output and the out folder 
 
     $ yarn start:once
 
-## Build and run the production server
+## Run the production server locally
 
-The project can run as a server to execute the invoice generation on demand, this will be explained in next steps to do everything in the cloud. You can test it locally by executing the following commands, and then accessing http://localhost:8080 in your browser every time you want to trigger the generation:
+The project can run as a server to execute the invoice generation on demand. You can test it locally by executing the following commands, and then accessing http://localhost:8080 in your browser every time you want to trigger the generation:
 
     $ yarn build
     $ yarn start
 
-## Apps Script & Google App Engine integration
+# Google Cloud Platform integration
 
 After verifying that everything works locally, you may want to automate the PDF generation in the cloud.
 
-**Heads up: This may take a lot of time and troubleshooting if you are not experienced with the Google Cloud platform.**
+> :warning: **Heads up: This may take a lot of time and troubleshooting if you are not experienced with the Google Cloud Platform.**
 
 We need to create a Google Cloud project, upload the code to App Engine, create an Apps Script and secure the communication between Apps Script and App Engine to finally trigger the invoice generator from the accounting sheet.
 
@@ -133,20 +147,20 @@ Extra APIs used to prevent unwanted billings:
 - Cloud Pub/Sub API
 - Cloud Functions API
 
-### Google App Engine setup
+## Google App Engine setup
 
 - [Create a Google Cloud project](https://console.cloud.google.com/cloud-resource-manager) and [enable billing](https://console.cloud.google.com/billing) for it.
 - _Optional: configure a Cloud Function to prevent unwanted billings with the [official documentation](https://cloud.google.com/billing/docs/how-to/notify) or with [this video](https://www.youtube.com/watch?v=KiTg8RPpGG4)_.
 - [Install the Google Cloud CLI](https://cloud.google.com/sdk/docs/install-sdk), run `gcloud init` in the project root folder and connect it to your project.
-- Change the `gcloud:deploy` script in [package.json](./package.json) to point the Project ID of your Google Cloud project (get it [here](https://console.cloud.google.com/home/dashboard)), for example: `--project sheets-to-invoices`
+- Change the `gcloud:deploy` script in [package.json](./package.json) to point the Project ID of your Google Cloud project (get it [here](https://console.cloud.google.com/home/dashboard)), for example: `--project cloud-invoicing`
 - Run the command `yarn gcloud:deploy` in the root directory to upload the nodejs project. The build folder will be built and then deployed, if you execute the command `gcloud app deploy` remember to build the project before.
 - [Enable IAP](https://console.cloud.google.com/security/iap) for the project (toggle the button for your App Engine app), select "All Web Services" and add the Gmail you would like to use to access the Google Sheets document by pressing the "Add Principal" button. Assign the role `IAP-secured Web App User`. Repeat this step for every IAP-allowed user you need.
 
-Now try to go to the url that appears in the IAP (shown in the Published column, it ends with `.appspot.com`), login with the Gmail used in the previous step and you should be able to access the deployed server.
+Now try to go to the url that appears in the IAP (shown in the Published column, it ends with `.appspot.com`), login with the Gmail used in the previous step, and you should be able to access the deployed server.
 
-The invoice generation will be triggered every time an IAP-allowed user does a GET request to the url. In the next steps you will configure the trigger from Google Sheets.
+The invoice generation will be triggered every time an IAP-allowed user does a GET request to the url. In the next steps, you will configure the trigger from Google Sheets.
 
-### Apps Script setup
+## Apps Script setup
 
 - Open your accounting sheet, in the menu open `Extensions > Apps Script`
 - Go to the configuration of the Apps Script, toggle the `Show "appsscript.json" manifest file in editor` checkbox.
@@ -157,11 +171,11 @@ The invoice generation will be triggered every time an IAP-allowed user does a G
   - The `IAP_CLIENT_ID` can be found in the [credentials](https://console.cloud.google.com/apis/credentials), it is named `IAP-App-Engine-app`. You just need to copy the Client ID.
   - The `IAP_URL` is the URL that ends with `.appspot.com`.
 
-### Running in the cloud
+## Running in the cloud
 
 Now you should be able to open your accounting sheet and find a menu called `Generate Invoices`, click the `Run now` option and the invoices should appear in your Drive folder.
 
-### Debugging in the cloud
+### Debugging
 
 Check the latest run logs on Google App Engine by running the following command:
 
