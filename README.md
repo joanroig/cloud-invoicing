@@ -109,11 +109,9 @@ The project can run as a server to execute the invoice generation on demand. You
 
 # Google Cloud Platform (GCP) integration
 
-After verifying locally that everything works, you may want to automate it in the cloud.
+After verifying locally that everything works, you may want to automate the invoice generation in the cloud.
 
-> :warning: **Heads up: This may take a lot of time and troubleshooting if you are not experienced with GCP.**
-
-> :warning: **In my experience, running this app on GCP does not exceed the free quotas. Please note that you need to enable billing, and I am not responsible for any costs involved.**
+> :warning: **Developing and running the project on GCP did not exceed my account's free quotas, but please note that you must enable billing at your own risk. You can configure a Cloud Function to prevent unwanted billings by following the [official documentation](https://cloud.google.com/billing/docs/how-to/notify) or this [video](https://www.youtube.com/watch?v=KiTg8RPpGG4).**
 
 ## Introduction
 
@@ -129,13 +127,11 @@ To provide a better understanding of all actors, the process flow looks like thi
    1. Read, verify and update `Google Sheets` data
    2. Upload invoices to `Google Drive`
 
-<br>
 <p align="center">
   <img src="img/diagram.png" alt="logo" width="500px"/>
   <br>
   <i>Simplified GCP architecture diagram</i>
 </p>
-<br>
 
 ### APIs overview
 
@@ -158,7 +154,6 @@ Extra APIs used to prevent unwanted billings:
 The App Engine is where the production server will be deployed and where the invoices will be generated. It will be your own secure cloud environment by protecting the access with IAP (Identity-Aware Proxy).
 
 - [Enable billing](https://console.cloud.google.com/billing) for your Google Cloud project.
-- _Optional: configure a Cloud Function to prevent unwanted billings by following the [official documentation](https://cloud.google.com/billing/docs/how-to/notify) or this [video](https://www.youtube.com/watch?v=KiTg8RPpGG4)_.
 - [Install the Google Cloud CLI](https://cloud.google.com/sdk/docs/install-sdk), run `gcloud init` in the project root folder and connect it to your project.
 - Update the `project_id` of the `.env` file with the Project ID of your Google Cloud project (get it [here](https://console.cloud.google.com/home/dashboard)).
 - Run the command `yarn gcloud:deploy` in the root directory to upload the nodejs project. The build folder will be built and then deployed, if you execute the command `gcloud app deploy` remember to build the project before.
