@@ -117,7 +117,9 @@ After verifying locally that everything works, you may want to automate it in th
 
 ## Introduction
 
-We need to have a Google Cloud project to upload the server to App Engine, create an Apps Script, secure the communication between Apps Script and App Engine, and finally trigger the invoice generation from the spreadsheet.
+We need to have a Google Cloud project to upload the server to App Engine, then create an Apps Script, secure the communication between Apps Script and App Engine, and finally trigger the invoice generation from the spreadsheet.
+
+### GCP architecture overview
 
 To provide a better understanding of all actors, the process flow looks like this:
 
@@ -127,10 +129,15 @@ To provide a better understanding of all actors, the process flow looks like thi
    1. Read, verify and update `Google Sheets` data
    2. Upload invoices to `Google Drive`
 
-<figure align="center">
-  <img src="img/diagram.png" alt="diagram" width="500px">
-  <figcaption>Simplified GCP architecture diagram</figcaption>
-</figure>
+<br>
+<p align="center">
+  <img src="img/diagram.png" alt="logo" width="500px"/>
+  <br>
+  <i>Simplified GCP architecture diagram</i>
+</p>
+<br>
+
+### APIs overview
 
 Following the guide will require to enable multiple Google Cloud APIs. You will be asked to enable them when needed via CLI or via the Google Cloud website:
 
