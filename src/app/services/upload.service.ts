@@ -4,7 +4,7 @@ import { Logger } from "../common/logger";
 
 const logger = Logger.getLogger("Upload");
 
-const driveFolderId = process.env.folder_id;
+const driveFolderId = process.env.drive_folder_id;
 
 // Google Drive connection
 let driveService: drive_v3.Drive;

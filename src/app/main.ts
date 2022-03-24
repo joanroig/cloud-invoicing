@@ -29,7 +29,7 @@ export async function run(cloud = true): Promise<string> {
 
   // Conect to Google Sheets
   logger.info("Connecting to Google Sheets");
-  doc = new GoogleSpreadsheet(process.env.sheet_id);
+  doc = new GoogleSpreadsheet(process.env.spreadsheet_id);
 
   // Load credentials
   await doc.useServiceAccountAuth({
@@ -39,7 +39,7 @@ export async function run(cloud = true): Promise<string> {
 
   // Load document properties and worksheets
   await doc.loadInfo();
-  logger.info(`Google Sheet title: ${doc.title}`);
+  logger.info(`Google Sheets title: ${doc.title}`);
 
   // Parse data
   const products = await ParseService.parseProducts(doc);
