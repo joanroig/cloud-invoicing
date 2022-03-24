@@ -65,7 +65,8 @@ export async function run(cloud = true): Promise<string> {
       orders.length === 1 ? "" : "s"
     } generated${upload ? " and uploaded" : ""}`;
   } else {
-    result = "Nothing to generate, run again after selecting some invoices.";
+    result =
+      "Nothing to generate, run again after marking the 'Run' checkbox in some orders of the spreadsheet.";
   }
 
   logger.info(result);
