@@ -6,20 +6,16 @@
 # For more information, run:
 #   $ gcloud topic gcloudignore
 #
-# .gcloudignore
-# If you would like to upload your .git directory, .gitignore file or files
-# from your .gitignore file, remove the corresponding line
-# below:
-# .git
-# .gitignore
 
-# Ignore all
+# The build will be done locally to reduce the workload in GCP.
+
+# Ignore all files and folders
 *
 
-# Include only the build folder, package and .env files
+# Include only the necessary production assets: build folder, fonts, package and config files
 !build/
 !fonts/
 !config/
+!.env
 !package.json
 !yarn.lock
-!.env

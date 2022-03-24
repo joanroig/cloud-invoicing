@@ -28,7 +28,7 @@
 - Invoice translations
 - Other invoice formats
 
-> :warning: **Disclaimer: _I am not a tax advisor, and as stated in the [license](LICENSE), I am by no means responsible for the use of this software._** _Please note that this was built for my own needs and may not fit your use case._
+> :warning: **Disclaimer: _I am not a tax or financial advisor, and as stated in the [license](LICENSE), I am by no means responsible for the use of this software._** _Please note that this was made for my own needs and may not fit your use case._
 
 ---
 
@@ -191,6 +191,12 @@ Something is not working? Then check the latest run logs on Google App Engine by
 Remember that you can always redeploy by running:
 
     $ yarn run gcloud:deploy
+
+## Known issues
+
+### **Exceeded soft memory limit of 256 MB after servicing X requests total**
+
+Issue that appeared when launching the invoice generation after deploying the complete source code of the project. It is solved by pre-building the project and uploading only the necessary files specified in `.gcloudignore`. More information [here](https://medium.com/@daavidaviid/how-to-solve-the-issue-exceeded-soft-memory-limit-in-app-engine-with-node-js-c48ecc46ba1e).
 
 ## Credits
 

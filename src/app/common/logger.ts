@@ -5,15 +5,12 @@ export class Logger {
   logFormat = winston.format.printf(
     (info) => `${info.timestamp} ${info.level} [${info.label}]: ${info.message}`
   );
-
   options: winston.LoggerOptions = {
     exitOnError: false,
-    level: process.env.NODE_ENV === "production" ? "info" : "debug",
+    level: "debug",
   };
 
   logger: winston.Logger;
-
-  private name: string;
 
   constructor(name: string) {
     this.options.format = winston.format.combine(
@@ -34,7 +31,6 @@ export class Logger {
     ];
 
     this.logger = winston.createLogger(this.options);
-    this.name = name;
   }
 
   public static getLogger(name: string): Logger {
