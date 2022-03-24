@@ -196,6 +196,6 @@ Remember that you can always redeploy by running:
 
 _All trademarks, logos and brand names are the property of their respective owners._
 
-PDF template based on: https://gist.github.com/maxkostinevich/c26bfb09450341ad37c1bd6c2cc51bb2
-
-Logger based on: https://gist.github.com/euikook/d72a40b3864856af57a6dcbec9d97007
+- App Scripts to IAP from: https://github.com/googleworkspace/apps-script-oauth2/blob/master/samples/CloudIdentityAwareProxy.gs
+- pdfmake template based on: https://gist.github.com/maxkostinevich/c26bfb09450341ad37c1bd6c2cc51bb2
+- Logger based on: https://gist.github.com/euikook/d72a40b3864856af57a6dcbec9d97007

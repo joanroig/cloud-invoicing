@@ -1,16 +1,8 @@
+// Add a menu in Google Sheets to trigger the generation
 function onOpen() {
   var UI = SpreadsheetApp.getUi();
-  UI.createMenu("Generate Invoices")
-    .addItem("Run now", "generateInvoices")
-    .addToUi();
+  UI.createMenu("Generate Invoices").addItem("Run now", "run").addToUi();
 }
-
-function generateInvoices() {
-  console.log("Generating invoices.");
-  run();
-}
-
-// Based on: https://github.com/googleworkspace/apps-script-oauth2/blob/master/samples/CloudIdentityAwareProxy.gs
 
 /**
  * This sample demonstrates how to connect to an application protected by Google
