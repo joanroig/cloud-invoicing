@@ -2,7 +2,7 @@
 <p align="center">
   <img src="img/logo.png" alt="logo" width="340px"/>
   <br>
-  <i>NodeJS project to create German invoices from a Google Sheets document.<br>Deployable to Google App Engine and automatable using Apps Script.</i>
+  <i>Node.js project to create German invoices from a Google Sheets document.<br>Deployable to Google App Engine and automatable using Apps Script.</i>
 </p>
 
 <p align="center">
@@ -75,7 +75,7 @@ Download the project and install its dependencies:
     $ cd cloud-invoicing
     $ yarn install
 
-## Configuration
+# Configuration
 
 Create a `.env` file in the root directory based on the provided `.env.example`, then you will need to:
 
@@ -156,7 +156,7 @@ The App Engine is where the production server will be deployed and where the inv
 - [Enable billing](https://console.cloud.google.com/billing) for your Google Cloud project.
 - [Install the Google Cloud CLI](https://cloud.google.com/sdk/docs/install-sdk), run `gcloud init` in the project root folder and connect it to your project.
 - Update the `project_id` of the `.env` file with the Project ID of your Google Cloud project (get it [here](https://console.cloud.google.com/home/dashboard)).
-- Run the command `yarn gcloud:deploy` in the root directory to upload the nodejs project. The build folder will be built and then deployed, if you execute the command `gcloud app deploy` remember to build the project before.
+- Run the command `yarn gcloud:deploy` in the root directory to upload the Node.js project. The build folder will be built and then deployed, if you execute the command `gcloud app deploy` remember to build the project before.
 - [Enable IAP](https://console.cloud.google.com/security/iap) for the project (toggle the button for your App Engine app), select "All Web Services" and add the Gmail you would like to use to access the Google Sheets document by pressing the "Add Principal" button. Assign the role `IAP-secured Web App User`. Repeat this step for every IAP-allowed user you need.
 
 Now try to access the server URL (shown in the [App Engine Dashboard](https://console.cloud.google.com/appengine), it ends with `.appspot.com`), login with the Gmail used in the previous step, and you should be able to access the deployed server.
@@ -192,13 +192,19 @@ Remember that you can always redeploy by running:
 
     $ yarn run gcloud:deploy
 
-## Known issues
+# Development and modifications
+
+You can fork and further extend the project to adapt it to your needs.
+
+The [model](src/app/models/sheets.model.ts) of the Node.js application is bounded to the headers of the provided Google Sheets template. Remember to modify the model enums if you change any header in the spreadsheet.
+
+# Known issues
 
 ### **Exceeded soft memory limit of 256 MB after servicing X requests total**
 
 Issue that appeared when launching the invoice generation after deploying the complete source code of the project. It is solved by pre-building the project and uploading only the necessary files specified in `.gcloudignore`. More information [here](https://medium.com/@daavidaviid/how-to-solve-the-issue-exceeded-soft-memory-limit-in-app-engine-with-node-js-c48ecc46ba1e).
 
-## Credits
+# Credits
 
 _All trademarks, logos and brand names are the property of their respective owners._
 
