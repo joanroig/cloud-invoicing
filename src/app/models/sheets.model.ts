@@ -61,7 +61,7 @@ export type Item = { [key in ItemPrefixKeysP]?: string }; // Item price and amou
 type OrderKeysP = keyof typeof OrderKeys;
 export type Order = {
   [key in OrderKeysP]?: string;
-} & { items: Item[]; total?: string }; // Order details with list of items
+} & { items: Item[]; total?: string }; // Order details with list of items and total value
 
 type CustomerKeysP = keyof typeof CustomerKeys;
 export type Customer = { [key in CustomerKeysP]?: string };
