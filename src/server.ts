@@ -1,11 +1,11 @@
 import express from "express";
-import { run } from "./app/main";
+import * as Main from "./app/main";
 
-// Run an express server to generate invoices on demand
+// Express server to generate invoices on demand
 const app = express();
 
 app.get("/", (req, res) => {
-  run().then(
+  Main.run().then(
     (result) => {
       res.send(result);
     },

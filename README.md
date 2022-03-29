@@ -2,11 +2,13 @@
 <p align="center">
   <img src="img/logo.png" alt="logo" width="340px"/>
   <br>
-  <i>Node.js project to create German invoices from a Google Sheets document.<br>Deployable to Google App Engine and automatable using Apps Script.</i>
+  <i>Node.js project to create German PDF invoices from a Google Sheets document.<br>Deployable to Google App Engine and automatable using Apps Script.</i>
 </p>
-
 <p align="center">
     See the <a href="examples/"><strong>invoice examples</strong></a>, and start your own <a href="https://docs.google.com/spreadsheets/d/1JRJ3KQetNAAPzsJat-JH7iIzc3OGumWQyFL5MZfm5UU/copy"><strong>accounting spreadsheet</strong></a>.
+</p>
+<p align="center">
+  <i>Related project: <a href="https://github.com/joanroig/cloud-reports"><strong>Cloud Reports for PayPal</strong></a></i>
 </p>
 <hr>
 
@@ -79,7 +81,7 @@ Download the project and install its dependencies:
 
 Create a `.env` file in the root directory based on the provided `.env.example`, then you will need to:
 
-- Create a Google Cloud project and a service account as explained in [this guide](https://theoephraim.github.io/node-google-spreadsheet/#/getting-started/authentication).
+- Create a Google Cloud project, activate the Google Sheets API, and create a service account as explained in [this guide](https://theoephraim.github.io/node-google-spreadsheet/#/getting-started/authentication).
 - Put the `private_key` and `client_email` values from the JSON of the service account you obtained in the previous step in the `.env` file.
 - [Do a copy](https://docs.google.com/spreadsheets/d/1JRJ3KQetNAAPzsJat-JH7iIzc3OGumWQyFL5MZfm5UU/copy) of the provided Google Sheets template.
 - Share the spreadsheet with the email of your service account (this allows the service account to access your spreadsheet). To do this, go to your copy of the template and press the share button, then enter the service account email and send the invitation.
@@ -170,17 +172,20 @@ An Apps Script of a Google Sheets document acts like a plugin that extends its f
 For the purpose of this project, the script will be responsible for sending requests to the App Engine server on behalf of an allowed user, which is needed to go through IAP.
 
 - Open your spreadsheet, in the menu open `Extensions > Apps Script`
-- Go to the configuration of the Apps Script, toggle the `Show "appsscript.json" manifest file in editor` checkbox.
-- Also in the configuration, assign the Project Number of the Google Cloud project (get it [here](https://console.cloud.google.com/home/dashboard)).
+- Go to the settings of the Apps Script and toggle the `Show "appsscript.json" manifest file in editor` checkbox.
+- Also in settings, assign the Project Number of the Google Cloud project (get it [here](https://console.cloud.google.com/home/dashboard)).
+- Go to [credentials](https://console.cloud.google.com/apis/credentials) and create a new OAuth 2.0 Client ID of type `Web application`. You will need to provide a redirect URL with the format `https://script.google.com/macros/d/{SCRIPT_ID}/usercallback`, where SCRIPT_ID is the ID provided in the Apps Script settings. More information [here](https://github.com/googleworkspace/apps-script-oauth2#redirect-uri).
 - Copy the `appsscript.json` and the `Code.gs` file from the examples/Apps Script folder in the Apps Script files.
 - Edit the `Code.gs` file to add your own credentials:
-  - Go to [credentials](https://console.cloud.google.com/apis/credentials) and create a new OAuth 2.0 Client ID of type `Web application`. Use the Client ID and Client Secret for the values of `CLIENT_ID` and `CLIENT_SECRET` respectively.
+  - Use the Client ID and Client Secret for the values of `CLIENT_ID` and `CLIENT_SECRET` respectively.
   - Use the Client ID of the `IAP-App-Engine-app` (find it in [credentials](https://console.cloud.google.com/apis/credentials) under the OAuth 2.0 Client IDs) for the value of `IAP_CLIENT_ID`.
   - The `IAP_URL` is the server URL that ends with `.appspot.com`.
 
 ## Running in the cloud
 
-Now you should be able to find a menu called `Generate Invoices` in your spreadsheet (refresh the page if not). Click the `Run now` option and the invoices will appear in your Drive folder.
+Now you should be able to find a menu called `Generate Invoices` in your spreadsheet (refresh the page if not). Click the `Run now` option.
+
+On the first run you will need to login with your gmail and enable the access and check the Apps Script executions for details (you should find an URL to enable the access in the execution log).
 
 ### Debugging
 
@@ -203,6 +208,10 @@ The [model](src/app/models/sheets.model.ts) of the Node.js application is bounde
 ### **Exceeded soft memory limit of 256 MB after servicing X requests total**
 
 Issue that appeared when launching the invoice generation after deploying the complete source code of the project. It is solved by pre-building the project and uploading only the necessary files specified in `.gcloudignore`. More information [here](https://medium.com/@daavidaviid/how-to-solve-the-issue-exceeded-soft-memory-limit-in-app-engine-with-node-js-c48ecc46ba1e).
+
+### **403 error on Google Sheets connection**
+
+This may happen if you did not activate the Google Sheets API, if you did not share the spreadsheet document with your service account, or if you did not introduce the proper data in the `.env` file. Look carefully if you copied the `private_key` value with comma in the end because this will make it invalid.
 
 # Credits
 
