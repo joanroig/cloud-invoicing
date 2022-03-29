@@ -19,3 +19,4 @@
 !.env
 !package.json
 !yarn.lock
+!app.yaml

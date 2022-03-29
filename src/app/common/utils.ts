@@ -14,7 +14,7 @@ export default class Utils {
     });
 
   // Log and throw error
-  static error(str: string) {
+  static throw(str: string) {
     logger.error(str);
     throw new Error(str);
   }

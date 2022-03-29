@@ -1,4 +1,4 @@
-import { run } from "./app/main";
+import * as Main from "./app/main";
 
 // Run the generator once and exit the application
-run(false);
+Main.run(false);

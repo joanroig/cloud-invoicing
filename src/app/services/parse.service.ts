@@ -30,7 +30,7 @@ export async function parseProducts(doc: GoogleSpreadsheet) {
     const product: Product = {};
     Object.entries(ProductKeys).forEach(([key, tableKey]) => {
       if (!row[tableKey]) {
-        Utils.error(`Error: Missing product '${tableKey}' in row: ${rowIndex}`);
+        Utils.throw(`Error: Missing product '${tableKey}' in row: ${rowIndex}`);
       }
       product[key as keyof typeof ProductKeys] = row[tableKey];
     });
@@ -51,7 +51,7 @@ export async function parseCustomers(doc: GoogleSpreadsheet) {
     const customer: Customer = {};
     Object.entries(CustomerKeys).forEach(([key, tableKey]) => {
       if (!row[tableKey] && ![CustomerKeys.vatId].includes(tableKey)) {
-        Utils.error(
+        Utils.throw(
           `Error: Missing customer '${tableKey}' in row: ${rowIndex}`
         );
       }
@@ -72,7 +72,7 @@ export async function parseCompany(doc: GoogleSpreadsheet) {
   rows.forEach((row, rowIndex) => {
     Object.entries(CompanyKeys).forEach(([key, tableKey]) => {
       if (!row[tableKey]) {
-        Utils.error(`Error: Missing company '${tableKey}' in row: ${rowIndex}`);
+        Utils.throw(`Error: Missing company '${tableKey}' in row: ${rowIndex}`);
       }
       company[key as keyof typeof CompanyKeys] = row[tableKey];
     });
@@ -102,7 +102,7 @@ export async function parseOrders(doc: GoogleSpreadsheet) {
         !row[tableKey] &&
         ![OrderKeys.invoiceId, OrderKeys.invoiceDate].includes(tableKey)
       ) {
-        Utils.error(`Error: Missing order '${tableKey}' in row: ${rowIndex}`);
+        Utils.throw(`Error: Missing order '${tableKey}' in row: ${rowIndex}`);
       }
       order[key as keyof typeof OrderKeys] = row[tableKey];
     });
@@ -125,7 +125,7 @@ export async function parseOrders(doc: GoogleSpreadsheet) {
         index++;
       } else {
         // Throw an error if some of the columns are missing information
-        Utils.error(
+        Utils.throw(
           `Error: Incomplete item '${productId}' '${amount}' '${price}' in row: ${rowIndex}`
         );
       }
@@ -135,7 +135,7 @@ export async function parseOrders(doc: GoogleSpreadsheet) {
     const sum = order.items.reduce((partialSum, a) => {
       const subtotal = Utils.euro(a.price).value * parseInt(a.amount);
       if (subtotal === 0) {
-        Utils.error(`Error: Subtotal is zero in row: ${rowIndex}`);
+        Utils.throw(`Error: Subtotal is zero in row: ${rowIndex}`);
       }
       return partialSum + subtotal;
     }, 0);
@@ -153,7 +153,7 @@ export async function parseOrders(doc: GoogleSpreadsheet) {
     // Generate invoice ID if not provided
     if (!order.invoiceId) {
       if (suffix > 99) {
-        Utils.error(`Error: More than 99 invoices in one month.`);
+        Utils.throw(`Error: More than 99 invoices in one month.`);
       }
 
       // Suffix always has 2 digits
@@ -166,12 +166,12 @@ export async function parseOrders(doc: GoogleSpreadsheet) {
 
     // Check for duplicate invoice IDs
     if (orderIds.has(order.invoiceId)) {
-      Utils.error(`Error: Duplicated invoice ID: ${order.invoiceId}`);
+      Utils.throw(`Error: Duplicated invoice ID: ${order.invoiceId}`);
     }
 
     // Check if the invoice ID is greater than the previous
     if (previousInvoiceId > parseInt(order.invoiceId)) {
-      Utils.error(
+      Utils.throw(
         `Current invoice ID is lower than previous invoice: ${previousInvoiceId} > ${order.invoiceId}`
       );
     }
@@ -180,7 +180,7 @@ export async function parseOrders(doc: GoogleSpreadsheet) {
     // Check if the invoice date comes after the previous invoice
     const invoiceDate = moment(order.invoiceDate, "DD.MM.YYYY");
     if (previousInvoiceDate?.isAfter(invoiceDate)) {
-      Utils.error(
+      Utils.throw(
         `Error: The invoice date is before the previous invoice: ${previousInvoiceDate.format(
           "DD.MM.YYYY"
         )} > ${order.invoiceDate}`
@@ -201,7 +201,7 @@ export async function parseOrders(doc: GoogleSpreadsheet) {
         logger.info(`Adding invoice date: ${order.invoiceDate}`);
         row[OrderKeys.invoiceDate] = order.invoiceDate;
       }
-      // Wait to save the idata into the sheet
+      // Wait to save the data into the sheet
       await row.save();
       orders.push(order);
     }
