@@ -10,7 +10,7 @@
     "start": "node build/server.js",
     "start:once": "npx ts-node src/index.ts",
     "start:dev": "nodemon",
-    "gcloud:deploy": "yarn run build && dotenv cross-var -- gcloud app deploy --quiet --project %project_id%",
+    "gcloud:deploy": "yarn run build && dotenv cross-var -- gcloud app deploy --quiet --project %project_id% --version=staging",
     "gcloud:logs": "dotenv cross-var -- gcloud app logs read --project %project_id%",
     "gcloud:list-files-for-upload": "gcloud meta list-files-for-upload",
     "lint": "eslint . --ext .ts",

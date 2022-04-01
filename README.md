@@ -197,6 +197,8 @@ Remember that you can always redeploy by running:
 
     $ yarn run gcloud:deploy
 
+> :warning: **The provided deploy script always replaces the same version on App Engine to prevent exceeding the Cloud Storage free thresholds. This is managed by adding `--version=staging` in the deploy command. If you did some deploys without the flag, you can remove old versions of your project [here](https://console.cloud.google.com/appengine/versions).**
+
 # Development and modifications
 
 You can fork and further extend the project to adapt it to your needs.
