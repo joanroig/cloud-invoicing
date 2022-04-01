@@ -103,6 +103,10 @@ dist
 # TernJS port file
 .tern-port
 
+# OS files
+._*
+.DS_Store
+
 # Custom
 build
 out
