@@ -369,10 +369,10 @@
     "@types/qs" "*"
     "@types/serve-static" "*"
 
-"@types/google-spreadsheet@3.2.1":
-  version "3.2.1"
-  resolved "https://registry.yarnpkg.com/@types/google-spreadsheet/-/google-spreadsheet-3.2.1.tgz#b53fcd02cb1c703db4b8c35752ebc0a7ec316f0c"
-  integrity sha512-k9fMPyRJuWFoRiD4ZU2xTJTBykeXIh+ittw59UHGvNVkyu0b82DorkEJe36LBlaLkqD2qPBAunVz6JZRMFvWIA==
+"@types/google-spreadsheet@3.2.2":
+  version "3.2.2"
+  resolved "https://registry.yarnpkg.com/@types/google-spreadsheet/-/google-spreadsheet-3.2.2.tgz#1d7a75982c89caa3ac38828d2f3268b5bc67e641"
+  integrity sha512-6e6GyxDuV1vGR+lHsuS06xaDo7r3PxSJdei+Z9x9DD7vZMhsY8kr8A3RkXsamQesDgr03VEcA8tlEyQapw9rjg==
 
 "@types/json-schema@^7.0.9":
   version "7.0.10"
