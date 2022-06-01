@@ -27,7 +27,7 @@
     "express": "^4.17.3",
     "google-auth-library": "^7.14.1",
     "google-spreadsheet": "^3.2.0",
-    "lint-staged": "^12.3.7",
+    "lint-staged": "^13.0.0",
     "moment": "^2.29.1",
     "nodemon": "^2.0.15",
     "pdfmake": "^0.2.5",
