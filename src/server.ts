@@ -11,7 +11,7 @@ app.get("/", (req, res) => {
     },
     (error) => {
       res.status(400).send(error.message);
-    }
+    },
   );
 });
 

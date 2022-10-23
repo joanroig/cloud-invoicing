@@ -52,14 +52,7 @@ export async function run(cloud = true): Promise<string> {
   if (orders.length > 0) {
     logger.info(`Generating ${orders.length} invoices`);
 
-    await GenerateService.generateInvoices(
-      orders,
-      company,
-      products,
-      customers,
-      outFolder,
-      upload
-    );
+    await GenerateService.generateInvoices(orders, company, products, customers, outFolder, upload);
 
     result =
       `${orders.length} invoice${orders.length === 1 ? "" : "s"} ` +

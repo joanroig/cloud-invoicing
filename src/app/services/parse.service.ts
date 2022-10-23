@@ -51,9 +51,7 @@ export async function parseCustomers(doc: GoogleSpreadsheet) {
     const customer: Customer = {};
     Object.entries(CustomerKeys).forEach(([key, tableKey]) => {
       if (!row[tableKey] && ![CustomerKeys.vatId].includes(tableKey)) {
-        Utils.throw(
-          `Error: Missing customer '${tableKey}' in row: ${rowIndex}`
-        );
+        Utils.throw(`Error: Missing customer '${tableKey}' in row: ${rowIndex}`);
       }
       customer[key as keyof typeof CustomerKeys] = row[tableKey];
     });
@@ -98,11 +96,8 @@ export async function parseOrders(doc: GoogleSpreadsheet) {
   for (const [rowIndex, row] of rows.entries()) {
     const order: Order = { items: [] };
     Object.entries(OrderKeys).forEach(([key, tableKey]) => {
-      if (
-        !row[tableKey] &&
-        ![OrderKeys.invoiceId, OrderKeys.invoiceDate].includes(tableKey)
-      ) {
-        Utils.throw(`Error: Missing order '${tableKey}' in row: ${rowIndex}`);
+      if (!row[tableKey] && ![OrderKeys.invoiceId, OrderKeys.invoiceDate].includes(tableKey)) {
+        Utils.throw(`Error: Missing order's '${tableKey}' in row: ${rowIndex}`);
       }
       order[key as keyof typeof OrderKeys] = row[tableKey];
     });
@@ -126,7 +121,7 @@ export async function parseOrders(doc: GoogleSpreadsheet) {
       } else {
         // Throw an error if some of the columns are missing information
         Utils.throw(
-          `Error: Incomplete item '${productId}' '${amount}' '${price}' in row: ${rowIndex}`
+          `Error: Incomplete item '${productId}' '${amount}' '${price}' in row: ${rowIndex}`,
         );
       }
     }
@@ -172,7 +167,7 @@ export async function parseOrders(doc: GoogleSpreadsheet) {
     // Check if the invoice ID is greater than the previous
     if (previousInvoiceId > parseInt(order.invoiceId)) {
       Utils.throw(
-        `Current invoice ID is lower than previous invoice: ${previousInvoiceId} > ${order.invoiceId}`
+        `Current invoice ID is lower than previous invoice: ${previousInvoiceId} > ${order.invoiceId}`,
       );
     }
     previousInvoiceId = parseInt(order.invoiceId);
@@ -182,8 +177,8 @@ export async function parseOrders(doc: GoogleSpreadsheet) {
     if (previousInvoiceDate?.isAfter(invoiceDate)) {
       Utils.throw(
         `Error: The invoice date is before the previous invoice: ${previousInvoiceDate.format(
-          "DD.MM.YYYY"
-        )} > ${order.invoiceDate}`
+          "DD.MM.YYYY",
+        )} > ${order.invoiceDate}`,
       );
     }
     previousInvoiceDate = invoiceDate;
