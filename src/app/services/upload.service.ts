@@ -24,11 +24,7 @@ export async function connectDrive() {
 }
 
 // Upload file to Google Drive
-export async function uploadFile(
-  fileName: string,
-  filePath: string,
-  fileMimeType: string
-) {
+export async function uploadFile(fileName: string, filePath: string, fileMimeType: string) {
   const list = await driveService.files.list({
     q: `name = "${fileName}" and "${driveFolderId}" in parents`,
     pageSize: 10,

@@ -3,7 +3,7 @@ import winston, { format, transports } from "winston";
 export class Logger {
   // Setup log format
   logFormat = winston.format.printf(
-    (info) => `${info.timestamp} ${info.level} [${info.label}]: ${info.message}`
+    (info) => `${info.timestamp} ${info.level} [${info.label}]: ${info.message}`,
   );
   options: winston.LoggerOptions = {
     exitOnError: false,
@@ -22,7 +22,7 @@ export class Logger {
       format.metadata({
         fillExcept: ["message", "level", "timestamp", "label"],
       }),
-      winston.format.label({ label: name })
+      winston.format.label({ label: name }),
     );
     this.options.transports = [
       new transports.Console({

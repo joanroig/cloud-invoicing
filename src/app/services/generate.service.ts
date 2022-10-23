@@ -4,13 +4,7 @@ import PdfPrinter from "pdfmake";
 import { TableCell, TDocumentDefinitions } from "pdfmake/interfaces";
 import { Logger } from "../common/logger";
 import Utils from "../common/utils";
-import {
-  Company,
-  Customer,
-  Order,
-  Product,
-  VatProcedure,
-} from "../models/sheets.model";
+import { Company, Customer, Order, Product, VatProcedure } from "../models/sheets.model";
 import * as UploadService from "./upload.service";
 
 const logger = Logger.getLogger("Generate");
@@ -23,7 +17,7 @@ export async function generateInvoices(
   products: Map<string, Product>,
   customers: Map<string, Customer>,
   outFolder: string,
-  upload: boolean
+  upload: boolean,
 ) {
   if (upload) {
     UploadService.connectDrive();
@@ -39,7 +33,7 @@ export async function generateInvoices(
       company,
       products,
       customers.get(order.customerId),
-      outFolder
+      outFolder,
     );
 
     logger.info(`Document ready at: ${filePath}`);
@@ -111,9 +105,7 @@ function buildItemBody(order: Order, products: Map<string, Product>) {
         style: "itemNumber",
       },
       {
-        text: Utils.euro(
-          Utils.euro(item.price).value * parseInt(item.amount)
-        ).format(),
+        text: Utils.euro(Utils.euro(item.price).value * parseInt(item.amount)).format(),
         style: "itemNumber",
       },
     ]);
@@ -144,7 +136,7 @@ async function buildPdf(
   company: Company,
   products: Map<string, Product>,
   customer: Customer,
-  outFolder: string
+  outFolder: string,
 ): Promise<{ fileName: string; filePath: string }> {
   // Define font files
   const fonts = {

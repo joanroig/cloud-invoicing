@@ -159,7 +159,7 @@ The App Engine is where the production server will be deployed and where the inv
 - [Install the Google Cloud CLI](https://cloud.google.com/sdk/docs/install-sdk), run `gcloud init` in the project root folder and connect it to your project.
 - Update the `project_id` of the `.env` file with the Project ID of your Google Cloud project (get it [here](https://console.cloud.google.com/home/dashboard)).
 - Run the command `yarn gcloud:deploy` in the root directory to upload the Node.js project. The build folder will be built and then deployed, if you execute the command `gcloud app deploy` remember to build the project before.
-- [Enable IAP](https://console.cloud.google.com/security/iap) for the project (toggle the button for your App Engine app), select "All Web Services" and add the Gmail you would like to use to access the Google Sheets document by pressing the "Add Principal" button. Assign the role `IAP-secured Web App User`. Repeat this step for every IAP-allowed user you need.
+- [Enable IAP](https://console.cloud.google.com/security/iap) for the project (create OAuth consent screen if asked) and toggle IAP for your App Engine app. Then select the App Engine app row and add the Gmail you would like to use to access the Google Sheets document by pressing the "Add Principal" button. Assign the role `IAP-secured Web App User`. Repeat this step for every IAP-allowed user you need.
 
 Now try to access the server URL (shown in the [App Engine Dashboard](https://console.cloud.google.com/appengine), it ends with `.appspot.com`), login with the Gmail used in the previous step, and you should be able to access the deployed server.
 
