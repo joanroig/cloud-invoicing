@@ -7,7 +7,7 @@ export default class Utils {
   // Read euro-formatted values from the spreadsheet
   static euro = (value: string | number) =>
     currency(value, {
-      separator: " ",
+      separator: ".",
       decimal: ",",
       symbol: "€",
       pattern: "# !",
