@@ -21,7 +21,7 @@ fi
 MUST_NOT_CHANGE='.env'
 
 # Format staged files with eslint and prettier as a plugin
-yarn run format:staged
+npm run format:staged
 
 # Exclude from the commit by unstaging the files
 git reset -- "$MUST_NOT_CHANGE"

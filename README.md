@@ -36,7 +36,7 @@
 
 ## Requirements
 
-You will need Node.js and Yarn installed in your environment.
+You will need Node.js >16 installed in your environment.
 
 ### Node
 
@@ -58,16 +58,10 @@ You will need Node.js and Yarn installed in your environment.
 If the installation was successful, you should be able to run the following commands:
 
     $ node --version
-    v16.14.0
+    v18.12.1
 
     $ npm --version
-    8.3.1
-
-### Yarn
-
-After installing node you will also need to install yarn:
-
-      $ npm install -g yarn
+    8.19.2
 
 ## Prepare the project folder
 
@@ -75,7 +69,7 @@ Download the project and install its dependencies:
 
     $ git clone https://github.com/joanroig/cloud-invoicing
     $ cd cloud-invoicing
-    $ yarn install
+    $ npm install
 
 # Configuration
 
@@ -100,14 +94,14 @@ Add some data in the spreadsheet and activate the checkboxes of the `Run` column
 
 Then, run the following command and check the console output and the out folder for checking your results:
 
-    $ yarn start:once
+    $ npm start:once
 
 ## Run the production server locally
 
 The project can run as a server to execute the invoice generation on demand. You can test it locally by executing the following commands, and then access http://localhost:8080 in your browser every time you want to trigger the generation:
 
-    $ yarn build
-    $ yarn start
+    $ npm build
+    $ npm start
 
 # Google Cloud Platform (GCP) integration
 
@@ -158,7 +152,7 @@ The App Engine is where the production server will be deployed and where the inv
 - [Enable billing](https://console.cloud.google.com/billing) for your Google Cloud project.
 - [Install the Google Cloud CLI](https://cloud.google.com/sdk/docs/install-sdk), run `gcloud init` in the project root folder and connect it to your project.
 - Update the `project_id` of the `.env` file with the Project ID of your Google Cloud project (get it [here](https://console.cloud.google.com/home/dashboard)).
-- Run the command `yarn gcloud:deploy` in the root directory to upload the Node.js project. The build folder will be built and then deployed, if you execute the command `gcloud app deploy` remember to build the project before.
+- Run the command `npm gcloud:deploy` in the root directory to upload the Node.js project. The build folder will be built and then deployed, if you execute the command `gcloud app deploy` remember to build the project before.
 - [Enable IAP](https://console.cloud.google.com/security/iap) for the project (create OAuth consent screen if asked) and toggle IAP for your App Engine app. Then select the App Engine app row and add the Gmail you would like to use to access the Google Sheets document by pressing the "Add Principal" button. Assign the role `IAP-secured Web App User`. Repeat this step for every IAP-allowed user you need.
 
 Now try to access the server URL (shown in the [App Engine Dashboard](https://console.cloud.google.com/appengine), it ends with `.appspot.com`), login with the Gmail used in the previous step, and you should be able to access the deployed server.
@@ -191,11 +185,11 @@ On the first run you will need to login with your gmail and enable the access an
 
 Something is not working? Then check the latest run logs on Google App Engine by running the following command:
 
-    $ yarn run gcloud:logs
+    $ npm run gcloud:logs
 
 Remember that you can always redeploy by running:
 
-    $ yarn run gcloud:deploy
+    $ npm run gcloud:deploy
 
 > :warning: **The provided deploy script always replaces the same version on App Engine to prevent exceeding the Cloud Storage free thresholds. This is managed by adding `--version=staging` in the deploy command. If you did some deploys without the flag, you can remove old versions of your project [here](https://console.cloud.google.com/appengine/versions).**
 

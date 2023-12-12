@@ -29,10 +29,10 @@ export async function parseProducts(doc: GoogleSpreadsheet) {
   rows.forEach((row, rowIndex) => {
     const product: Product = {};
     Object.entries(ProductKeys).forEach(([key, tableKey]) => {
-      if (!row[tableKey]) {
+      if (!row.get(tableKey)) {
         Utils.throw(`Error: Missing product '${tableKey}' in row: ${rowIndex}`);
       }
-      product[key as keyof typeof ProductKeys] = row[tableKey];
+      product[key as keyof typeof ProductKeys] = row.get(tableKey);
     });
     products.set(product.id, product);
   });
@@ -50,10 +50,10 @@ export async function parseCustomers(doc: GoogleSpreadsheet) {
   rows.forEach((row, rowIndex) => {
     const customer: Customer = {};
     Object.entries(CustomerKeys).forEach(([key, tableKey]) => {
-      if (!row[tableKey] && ![CustomerKeys.vatId].includes(tableKey)) {
+      if (!row.get(tableKey) && ![CustomerKeys.vatId].includes(tableKey)) {
         Utils.throw(`Error: Missing customer '${tableKey}' in row: ${rowIndex}`);
       }
-      customer[key as keyof typeof CustomerKeys] = row[tableKey];
+      customer[key as keyof typeof CustomerKeys] = row.get(tableKey);
     });
     customers.set(customer.id, customer);
   });
@@ -69,10 +69,10 @@ export async function parseCompany(doc: GoogleSpreadsheet) {
 
   rows.forEach((row, rowIndex) => {
     Object.entries(CompanyKeys).forEach(([key, tableKey]) => {
-      if (!row[tableKey]) {
+      if (!row.get(tableKey)) {
         Utils.throw(`Error: Missing company '${tableKey}' in row: ${rowIndex}`);
       }
-      company[key as keyof typeof CompanyKeys] = row[tableKey];
+      company[key as keyof typeof CompanyKeys] = row.get(tableKey);
     });
   });
   return company;
@@ -95,11 +95,13 @@ export async function parseOrders(doc: GoogleSpreadsheet) {
 
   for (const [rowIndex, row] of rows.entries()) {
     const order: Order = { items: [] };
+
+    // Build the order object
     Object.entries(OrderKeys).forEach(([key, tableKey]) => {
-      if (!row[tableKey] && ![OrderKeys.invoiceId, OrderKeys.invoiceDate].includes(tableKey)) {
+      if (!row.get(tableKey) && ![OrderKeys.invoiceId, OrderKeys.invoiceDate].includes(tableKey)) {
         Utils.throw(`Error: Missing order's '${tableKey}' in row: ${rowIndex}`);
       }
-      order[key as keyof typeof OrderKeys] = row[tableKey];
+      order[key as keyof typeof OrderKeys] = row.get(tableKey);
     });
 
     // Map the order items to an array
@@ -107,9 +109,9 @@ export async function parseOrders(doc: GoogleSpreadsheet) {
     let index = 1;
     while (more) {
       // Look for order items by checking the columns in blocks (Product X, Amount X, Price X)
-      const productId = row[ItemPrefixKeys.productId + index];
-      const amount = row[ItemPrefixKeys.amount + index];
-      const price = row[ItemPrefixKeys.price + index];
+      const productId = row.get(ItemPrefixKeys.productId + index);
+      const amount = row.get(ItemPrefixKeys.amount + index);
+      const price = row.get(ItemPrefixKeys.price + index);
 
       if ([productId, amount, price].every((el) => Boolean(!el))) {
         // If all three values are empty (or the columns at index X do not exist), then stop searching
@@ -187,14 +189,14 @@ export async function parseOrders(doc: GoogleSpreadsheet) {
 
     // Check there are missing fields and add them in Google Sheets
     if (order.run === "TRUE") {
-      row[OrderKeys.run] = "FALSE";
-      if (!row[OrderKeys.invoiceId]) {
+      row.set(OrderKeys.run, "FALSE");
+      if (!row.get(OrderKeys.invoiceId)) {
         logger.info(`Adding invoice ID: ${order.invoiceId}`);
-        row[OrderKeys.invoiceId] = order.invoiceId;
+        row.set(OrderKeys.invoiceId, order.invoiceId);
       }
-      if (!row[OrderKeys.invoiceDate]) {
+      if (!row.get(OrderKeys.invoiceDate)) {
         logger.info(`Adding invoice date: ${order.invoiceDate}`);
-        row[OrderKeys.invoiceDate] = order.invoiceDate;
+        row.set(OrderKeys.invoiceDate, order.invoiceDate);
       }
       // Wait to save the data into the sheet
       await row.save();
