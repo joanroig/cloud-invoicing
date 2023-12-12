@@ -18,5 +18,5 @@
 !config/
 !.env
 !package.json
-!yarn.lock
+!package-lock.json
 !app.yaml

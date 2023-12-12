@@ -1,5 +1,6 @@
 import config from "config";
 import "dotenv/config";
+import { JWT } from 'google-auth-library';
 import { GoogleSpreadsheet } from "google-spreadsheet";
 import { Logger } from "./common/logger";
 import * as GenerateService from "./services/generate.service";
@@ -27,15 +28,19 @@ export async function run(cloud = true): Promise<string> {
     upload = config.get("upload-to-drive");
   }
 
+  // Initialize auth
+  const serviceAccountAuth = new JWT({
+    email: process.env.client_email,
+    key: process.env.private_key,
+    scopes: [
+      'https://www.googleapis.com/auth/spreadsheets',
+      'https://www.googleapis.com/auth/drive.file',
+    ],
+  });
+
   // Conect to Google Sheets
   logger.info("Connecting to Google Sheets");
-  doc = new GoogleSpreadsheet(process.env.spreadsheet_id);
-
-  // Load credentials
-  await doc.useServiceAccountAuth({
-    client_email: process.env.client_email,
-    private_key: process.env.private_key,
-  });
+  doc = new GoogleSpreadsheet(process.env.spreadsheet_id, serviceAccountAuth);
 
   // Load document properties and worksheets
   await doc.loadInfo();
